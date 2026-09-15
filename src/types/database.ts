@@ -396,6 +396,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_public_intake_rate_limit: {
+        Args: {
+          p_key_hash: string
+          p_limit?: number
+          p_window_seconds?: number
+        }
+        Returns: boolean
+      }
       mark_opportunity_lost: {
         Args: { p_notes?: string; p_opportunity_id: string; p_reason: string }
         Returns: {

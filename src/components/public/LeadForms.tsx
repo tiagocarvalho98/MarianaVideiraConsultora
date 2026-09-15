@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { submitBuyerLeadAction, submitSellerLeadAction } from "@/app/public-actions";
@@ -21,8 +21,24 @@ import {
   contactFormSchema,
   sellerFormSchema,
 } from "@/lib/public/form-validation";
+import {
+  createConversionEvent,
+  publishConversionEvent,
+  type ConversionEventName,
+} from "@/lib/analytics/conversion-events";
 
 type FormErrors = Record<string, string>;
+type StoredAttribution = Partial<Record<
+  | "utm_source"
+  | "utm_medium"
+  | "utm_campaign"
+  | "utm_content"
+  | "utm_term"
+  | "gclid"
+  | "fbclid"
+  | "referrer",
+  string
+>>;
 
 function fieldValue(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -39,19 +55,115 @@ function useTrackingFields() {
   const searchParams = useSearchParams();
 
   return useMemo(
-    () => ({
-      utmSource: searchParams.get("utm_source") ?? "",
-      utmMedium: searchParams.get("utm_medium") ?? "",
-      utmCampaign: searchParams.get("utm_campaign") ?? "",
-      utmContent: searchParams.get("utm_content") ?? "",
-      utmTerm: searchParams.get("utm_term") ?? "",
-      gclid: searchParams.get("gclid") ?? "",
-      fbclid: searchParams.get("fbclid") ?? "",
-      landingPage: pathname,
-      referrer: typeof document === "undefined" ? "" : document.referrer,
-    }),
+    () => {
+      const keys = [
+        "utm_source",
+        "utm_medium",
+        "utm_campaign",
+        "utm_content",
+        "utm_term",
+        "gclid",
+        "fbclid",
+      ] as const;
+      const stored = readStoredAttribution();
+      const nextStored = { ...stored };
+      let hasNewAttribution = false;
+
+      keys.forEach((key) => {
+        const value = searchParams.get(key);
+        if (value) {
+          nextStored[key] = value;
+          hasNewAttribution = true;
+        }
+      });
+
+      if (
+        typeof document !== "undefined" &&
+        document.referrer &&
+        !nextStored.referrer
+      ) {
+        nextStored.referrer = document.referrer;
+        hasNewAttribution = true;
+      }
+
+      if (hasNewAttribution && typeof window !== "undefined") {
+        window.sessionStorage.setItem("mariana_attribution", JSON.stringify(nextStored));
+      }
+
+      return {
+        utmSource: searchParams.get("utm_source") ?? nextStored.utm_source ?? "",
+        utmMedium: searchParams.get("utm_medium") ?? nextStored.utm_medium ?? "",
+        utmCampaign: searchParams.get("utm_campaign") ?? nextStored.utm_campaign ?? "",
+        utmContent: searchParams.get("utm_content") ?? nextStored.utm_content ?? "",
+        utmTerm: searchParams.get("utm_term") ?? nextStored.utm_term ?? "",
+        gclid: searchParams.get("gclid") ?? nextStored.gclid ?? "",
+        fbclid: searchParams.get("fbclid") ?? nextStored.fbclid ?? "",
+        landingPage: pathname,
+        referrer:
+          typeof document === "undefined"
+            ? ""
+            : document.referrer || nextStored.referrer || "",
+      };
+    },
     [pathname, searchParams],
   );
+}
+
+function readStoredAttribution(): StoredAttribution {
+  if (typeof window === "undefined") return {};
+
+  try {
+    const parsed = JSON.parse(window.sessionStorage.getItem("mariana_attribution") ?? "{}");
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? parsed
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+function HoneypotField() {
+  return (
+    <div className="sr-only" aria-hidden="true">
+      <label>
+        Website da empresa
+        <input
+          name="companyWebsite"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+        />
+      </label>
+    </div>
+  );
+}
+
+function useFormConversionEvents({
+  view,
+  started,
+  submitted,
+}: {
+  view: ConversionEventName;
+  started: ConversionEventName;
+  submitted: ConversionEventName;
+}) {
+  const pathname = usePathname();
+  const startedRef = useRef(false);
+
+  useEffect(() => {
+    publishConversionEvent(createConversionEvent(view, { path: pathname }));
+  }, [pathname, view]);
+
+  return {
+    markStarted() {
+      if (startedRef.current) return;
+      startedRef.current = true;
+      publishConversionEvent(createConversionEvent(started, { path: pathname }));
+    },
+    markSubmitted() {
+      publishConversionEvent(createConversionEvent(submitted, { path: pathname }));
+    },
+  };
 }
 
 function HiddenTrackingFields() {
@@ -171,10 +283,23 @@ function SubmitSuccess() {
   );
 }
 
+function ContactValidationSuccess() {
+  return (
+    <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm font-semibold text-stone-800">
+      Dados validados nesta pagina. Para registo no CRM, use os formularios de venda ou compra.
+    </div>
+  );
+}
+
 export function SellerLeadForm() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const conversion = useFormConversionEvents({
+    view: "seller_form_view",
+    started: "seller_form_started",
+    submitted: "seller_lead_submitted",
+  });
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -231,12 +356,14 @@ export function SellerLeadForm() {
     }
 
     setSuccess(true);
+    conversion.markSubmitted();
     form.reset();
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-4 rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm md:grid-cols-2">
+    <form onSubmit={onSubmit} onChange={conversion.markStarted} className="grid gap-4 rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm md:grid-cols-2">
       <HiddenTrackingFields />
+      <HoneypotField />
       <TextInput label="Nome" name="name" required error={errors.name} />
       <TextInput label="Telefone" name="phone" type="tel" required error={errors.phone} />
       <TextInput label="Email opcional" name="email" type="email" error={errors.email} />
@@ -264,6 +391,11 @@ export function BuyerLeadForm() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const conversion = useFormConversionEvents({
+    view: "buyer_form_view",
+    started: "buyer_form_started",
+    submitted: "buyer_lead_submitted",
+  });
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -321,12 +453,14 @@ export function BuyerLeadForm() {
     }
 
     setSuccess(true);
+    conversion.markSubmitted();
     form.reset();
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-4 rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm md:grid-cols-2">
+    <form onSubmit={onSubmit} onChange={conversion.markStarted} className="grid gap-4 rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm md:grid-cols-2">
       <HiddenTrackingFields />
+      <HoneypotField />
       <TextInput label="Nome" name="name" required error={errors.name} />
       <TextInput label="Telefone" name="phone" type="tel" required error={errors.phone} />
       <TextInput label="Email opcional" name="email" type="email" error={errors.email} />
@@ -406,9 +540,9 @@ export function ContactForm() {
         <span>Aceito a politica de privacidade e autorizo o tratamento dos dados para resposta ao meu pedido.</span>
       </label>
       <FieldError error={errors.privacyConsent} />
-      {success ? <div className="md:col-span-2"><SubmitSuccess /></div> : null}
+      {success ? <div className="md:col-span-2"><ContactValidationSuccess /></div> : null}
       <button className="min-h-12 rounded-full bg-primary px-5 text-sm font-bold uppercase text-white transition hover:bg-stone-900 md:col-span-2">
-        Validar contacto
+        Validar dados
       </button>
     </form>
   );

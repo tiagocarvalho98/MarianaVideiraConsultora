@@ -365,7 +365,8 @@ Current public intake:
 - The RPC creates/reuses Contact, creates Opportunity, creates FormSubmission, creates Activity `form_submission`, and creates Activity `note` when a message exists.
 - The browser never receives service role credentials and never inserts directly into CRM tables.
 - `anon` has no direct table access and cannot execute the intake RPC.
-- Current rate limiting is basic and in-memory; it must be reviewed before meaningful public traffic or paid campaigns.
+- Public intake rate limiting is server-side through Supabase using hashed fingerprints, not raw phone/IP.
+- A simple honeypot exists for public seller/buyer forms.
 
 ## Repository Architecture
 
@@ -426,6 +427,34 @@ Supabase is now the active runtime:
 8. Public seller/buyer intake is active through server-side boundaries and the transactional RPC.
 
 The service role key must never be exposed to the browser. It is allowed only in server-side code and scripts that explicitly require privileged database operations.
+
+## Production Readiness Strategy
+
+Production deployment should use GitHub -> Vercel.
+
+Required production environment variables:
+
+- `NEXT_PUBLIC_SITE_URL`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+Production readiness rules:
+
+- public forms must submit through Server Actions
+- public intake must remain transactional through PostgreSQL RPC
+- service role is server-only
+- Vercel logs are the initial observability layer
+- conversion events are internal typed browser events until analytics providers are explicitly approved
+- no Meta Pixel, Google Ads, Google Analytics or external analytics provider is installed yet
+- ContactForm remains non-persistent until its domain behavior is approved
+
+Minimum backup/recovery posture:
+
+- migrations in Git recreate schema, not production data
+- `supabase/seed.sql` is development/local seed only
+- real data recovery depends on Supabase backups/PITR for the active plan
+- before future schema changes, create forward-only migrations and confirm backup status
 
 ## Visual Identity: Editorial Humano
 

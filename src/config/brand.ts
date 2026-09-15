@@ -1,3 +1,5 @@
+import { getSiteUrl } from "./site";
+
 export const brand = {
   name: "Mariana",
   surname: "Videira",
@@ -8,7 +10,7 @@ export const brand = {
   email: "[email por confirmar]",
   whatsapp: "[whatsapp por confirmar]",
   instagram: "[instagram por confirmar]",
-  siteUrl: "https://example.com",
+  siteUrl: getSiteUrl(),
   company: "[empresa por confirmar]",
   network: "[rede imobiliaria por confirmar]",
   profileImage: "/placeholders/mariana-profile-placeholder.svg",

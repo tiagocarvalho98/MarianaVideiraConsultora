@@ -57,6 +57,7 @@ npm run dev
 Create `.env.local` from `.env.example`:
 
 ```bash
+NEXT_PUBLIC_SITE_URL=
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
@@ -92,6 +93,20 @@ Current required profiles:
 - Tiago Carvalho: `admin`, `is_active=true`
 - Mariana Videira: `consultor`, `is_active=true`
 
+## Production Environment
+
+Production should be deployed from GitHub to Vercel.
+
+Required Vercel Production Environment Variables:
+
+- `NEXT_PUBLIC_SITE_URL`: canonical production URL
+- `NEXT_PUBLIC_SUPABASE_URL`: Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`: publishable browser/server key
+- `SUPABASE_SERVICE_ROLE_KEY`: server-only key for privileged Server Actions/RPC calls
+
+Never expose `SUPABASE_SERVICE_ROLE_KEY` through `NEXT_PUBLIC_*`, client
+components, logs, responses or source maps.
+
 ## Public Intake
 
 `/vender` and `/comprar` are active.
@@ -119,7 +134,33 @@ Important rules:
 - public leads start `created_by = null`
 - public leads start `status = new`, `stage = nova_lead`, `temperature = morna`
 - `user_agent` is captured server-side when available
-- current rate limiting is basic and in-memory; review it before meaningful public traffic
+- rate limiting is stored server-side in Supabase using hashed fingerprints, not raw phone/IP
+
+## Security And Observability
+
+Production readiness currently includes:
+
+- security headers configured in `next.config.ts`
+- CRM pages marked `noindex`
+- robots disallowing `/crm/`
+- public intake Server Actions returning generic public errors
+- safe server logging for intake success, validation failure, rate limit, honeypot and server failure
+- no logging of passwords, tokens, service role keys, JWTs or full private payloads
+- internal conversion event helpers, without external analytics providers
+
+Vercel logs are the initial observability layer. Add a dedicated observability
+provider only after production usage justifies it.
+
+## Backup And Recovery
+
+Minimum recovery strategy for this phase:
+
+- database schema is reproducible from versioned migrations in `supabase/migrations`
+- local/development seed data is separate in `supabase/seed.sql`
+- generated TypeScript DB types can be regenerated from Supabase
+- real production data is not backed up by Git
+- production data recovery depends on Supabase backups/PITR according to the active Supabase plan
+- before future schema changes, create a new forward-only migration, run QA, and confirm Supabase backup status
 
 ## Implemented Scope
 

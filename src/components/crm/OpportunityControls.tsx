@@ -113,7 +113,7 @@ export function OpportunityControls({
       ) : (
         <div className="hidden items-center gap-2 text-sm text-stone-500 md:flex">
           <UserRound className="h-4 w-4" aria-hidden="true" />
-          Alteracoes guardam em mock memory.
+          Alteracoes guardadas no CRM.
         </div>
       )}
     </div>

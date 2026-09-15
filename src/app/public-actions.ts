@@ -1,22 +1,25 @@
 "use server";
 
-import { createHash } from "node:crypto";
 import { headers } from "next/headers";
 import { getCrmRepository } from "@/lib/crm";
+import { logEvent } from "@/lib/observability/logging";
 import {
   buyerFormSchema,
   sellerFormSchema,
   type BuyerFormData,
   type SellerFormData,
 } from "@/lib/public/form-validation";
+import {
+  checkPublicIntakeRateLimit,
+  createCorrelationId,
+  hashPublicIntakeKey,
+  type PublicIntakeFormType,
+} from "@/lib/public/rate-limit";
 
 type PublicLeadActionResult = {
   ok: boolean;
   errors?: Record<string, string>;
 };
-
-const minimumSubmitIntervalMs = 20_000;
-const recentSubmissions = new Map<string, number>();
 
 const sellerKeys = [
   "name",
@@ -83,45 +86,79 @@ async function userAgent() {
   return (await headers()).get("user-agent")?.slice(0, 500) ?? undefined;
 }
 
-async function rateLimitKey(formType: "buyer" | "seller", phone: string) {
+async function clientIpAddress() {
   const headerStore = await headers();
   const forwardedFor = headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "";
   const realIp = headerStore.get("x-real-ip") ?? "";
-  const fingerprint = `${formType}:${forwardedFor || realIp}:${phone}`;
 
-  return createHash("sha256").update(fingerprint).digest("hex");
+  return forwardedFor || realIp || "unknown";
 }
 
-function isRateLimited(key: string) {
-  const now = Date.now();
-  const previous = recentSubmissions.get(key);
+function safeIssueFields(issues: Array<{ path: Array<string | number> }>) {
+  return [...new Set(issues.map((issue) => String(issue.path[0] ?? "form")))];
+}
 
-  for (const [storedKey, timestamp] of recentSubmissions) {
-    if (now - timestamp > minimumSubmitIntervalMs) {
-      recentSubmissions.delete(storedKey);
-    }
+function isHoneypotFilled(formData: FormData) {
+  const value = formData.get("companyWebsite");
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+async function assertAllowedByRateLimit(
+  formType: PublicIntakeFormType,
+  phone: string,
+  correlationId: string,
+) {
+  const keyHash = hashPublicIntakeKey({
+    formType,
+    ipAddress: await clientIpAddress(),
+    phone,
+  });
+
+  const allowed = await checkPublicIntakeRateLimit(keyHash);
+
+  if (!allowed) {
+    logEvent("warn", "public_intake_rate_limited", {
+      correlationId,
+      formType,
+    });
   }
 
-  if (previous && now - previous < minimumSubmitIntervalMs) {
-    return true;
-  }
-
-  recentSubmissions.set(key, now);
-
-  return false;
+  return allowed;
 }
 
 export async function submitSellerLeadAction(
   formData: FormData,
 ): Promise<PublicLeadActionResult> {
+  const correlationId = createCorrelationId();
+
+  if (isHoneypotFilled(formData)) {
+    logEvent("warn", "public_intake_honeypot", { correlationId, formType: "seller" });
+    return { ok: true };
+  }
+
   const result = sellerFormSchema.safeParse(collectData(formData, sellerKeys));
 
   if (!result.success) {
+    logEvent("warn", "public_intake_validation_failed", {
+      correlationId,
+      formType: "seller",
+      fields: safeIssueFields(result.error.issues),
+    });
+
     return { ok: false, errors: fieldErrors(result.error.issues) };
   }
 
-  if (isRateLimited(await rateLimitKey("seller", result.data.phone))) {
-    return { ok: false, errors: { form: "Pedido recebido ha poucos segundos. Tente novamente dentro de instantes." } };
+  try {
+    if (!(await assertAllowedByRateLimit("seller", result.data.phone, correlationId))) {
+      return { ok: false, errors: { form: "Nao foi possivel enviar o pedido. Tente novamente dentro de instantes." } };
+    }
+  } catch {
+    logEvent("error", "public_intake_rate_limit_failure", {
+      correlationId,
+      formType: "seller",
+    });
+
+    return { ok: false, errors: { form: "Nao foi possivel enviar o pedido. Tente novamente dentro de instantes." } };
   }
 
   try {
@@ -129,7 +166,13 @@ export async function submitSellerLeadAction(
       ...(result.data as SellerFormData),
       userAgent: await userAgent(),
     });
+    logEvent("info", "public_intake_success", { correlationId, formType: "seller" });
   } catch {
+    logEvent("error", "public_intake_server_failure", {
+      correlationId,
+      formType: "seller",
+    });
+
     return { ok: false, errors: { form: "Nao foi possivel enviar o pedido. Tente novamente dentro de instantes." } };
   }
 
@@ -139,14 +182,36 @@ export async function submitSellerLeadAction(
 export async function submitBuyerLeadAction(
   formData: FormData,
 ): Promise<PublicLeadActionResult> {
+  const correlationId = createCorrelationId();
+
+  if (isHoneypotFilled(formData)) {
+    logEvent("warn", "public_intake_honeypot", { correlationId, formType: "buyer" });
+    return { ok: true };
+  }
+
   const result = buyerFormSchema.safeParse(collectData(formData, buyerKeys));
 
   if (!result.success) {
+    logEvent("warn", "public_intake_validation_failed", {
+      correlationId,
+      formType: "buyer",
+      fields: safeIssueFields(result.error.issues),
+    });
+
     return { ok: false, errors: fieldErrors(result.error.issues) };
   }
 
-  if (isRateLimited(await rateLimitKey("buyer", result.data.phone))) {
-    return { ok: false, errors: { form: "Pedido recebido ha poucos segundos. Tente novamente dentro de instantes." } };
+  try {
+    if (!(await assertAllowedByRateLimit("buyer", result.data.phone, correlationId))) {
+      return { ok: false, errors: { form: "Nao foi possivel enviar o pedido. Tente novamente dentro de instantes." } };
+    }
+  } catch {
+    logEvent("error", "public_intake_rate_limit_failure", {
+      correlationId,
+      formType: "buyer",
+    });
+
+    return { ok: false, errors: { form: "Nao foi possivel enviar o pedido. Tente novamente dentro de instantes." } };
   }
 
   try {
@@ -154,7 +219,13 @@ export async function submitBuyerLeadAction(
       ...(result.data as BuyerFormData),
       userAgent: await userAgent(),
     });
+    logEvent("info", "public_intake_success", { correlationId, formType: "buyer" });
   } catch {
+    logEvent("error", "public_intake_server_failure", {
+      correlationId,
+      formType: "buyer",
+    });
+
     return { ok: false, errors: { form: "Nao foi possivel enviar o pedido. Tente novamente dentro de instantes." } };
   }
 

@@ -9,13 +9,13 @@ export default async function ConfiguracoesPage() {
       <PageIntro
         eyebrow="Sistema"
         title="Configuracoes"
-        description="Estado tecnico temporario da aplicacao enquanto a UX trabalha com dados mockados."
+        description="Estado tecnico da aplicacao ligada ao Supabase real."
       />
       <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
         <h2 className="text-lg font-bold text-stone-950">Modo de dados</h2>
         <p className="mt-2 text-stone-600">
-          A UI esta ligada ao mock repository. Supabase fica preparado por
-          migrations e contratos, mas ainda nao esta ligado a um projeto remoto.
+          A UI esta ligada ao SupabaseRepository. Auth, RLS e intake publico
+          seller/buyer estao ativos no projeto Supabase real.
         </p>
         <dl className="mt-5 grid gap-3 md:grid-cols-3">
           <div className="rounded-xl bg-stone-50 p-4">

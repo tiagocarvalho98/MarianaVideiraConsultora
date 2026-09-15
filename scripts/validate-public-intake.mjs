@@ -185,6 +185,20 @@ async function main() {
       _payload: sellerPayload(runId, "000001"),
     });
     assert(anonRpc.error, "anon unexpectedly executed public intake RPC");
+    const anonRateLimitRpc = await anon.rpc("check_public_intake_rate_limit", {
+      p_key_hash: "f".repeat(64),
+      p_limit: 3,
+      p_window_seconds: 600,
+    });
+    assert(anonRateLimitRpc.error, "anon unexpectedly executed rate limit RPC");
+
+    const serviceRateLimitRpc = await service.rpc("check_public_intake_rate_limit", {
+      p_key_hash: `${runId}${"0".repeat(64)}`.slice(0, 64),
+      p_limit: 3,
+      p_window_seconds: 600,
+    });
+    if (serviceRateLimitRpc.error) throw serviceRateLimitRpc.error;
+    assert(serviceRateLimitRpc.data === true, "service role could not execute rate limit RPC");
 
     const seller = await submitIntake(service, sellerPayload(runId, "100001"));
     contactIds.add(seller.contactId);
@@ -304,6 +318,7 @@ async function main() {
     console.table([
       { check: "anon CRM table reads blocked", result: "pass" },
       { check: "anon public intake RPC blocked", result: "pass" },
+      { check: "rate limit RPC permissions", result: "pass" },
       { check: "seller public intake", result: "pass" },
       { check: "buyer public intake", result: "pass" },
       { check: "message creates note activity", result: "pass" },

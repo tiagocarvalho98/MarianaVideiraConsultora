@@ -1,7 +1,15 @@
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { CrmSidebar } from "@/components/crm/CrmSidebar";
 import { MobileCrmNav } from "@/components/crm/MobileCrmNav";
 import { getSupabaseSessionProfile } from "@/lib/auth/server-auth";
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function CrmLayout({
   children,
