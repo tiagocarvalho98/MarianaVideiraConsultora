@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500" role="img" aria-labelledby="title desc">
+  <title id="title">Espaco reservado para fotografia real de Mariana Videira</title>
+  <desc id="desc">Placeholder editorial ate existir fotografia final fornecida pela consultora.</desc>
+  <rect width="1200" height="1500" fill="#ece5dc"/>
+  <rect x="72" y="72" width="1056" height="1356" fill="#f8f5f0" stroke="#d6c8b8" stroke-width="2"/>
+  <rect x="138" y="138" width="924" height="970" fill="#ded5ca"/>
+  <path d="M138 1002 C330 882 481 918 612 803 C738 692 841 657 1062 760 L1062 1108 L138 1108 Z" fill="#c8b8a7"/>
+  <circle cx="776" cy="358" r="128" fill="#bfb0a2"/>
+  <text x="138" y="1216" fill="#2f3f36" font-family="Georgia, serif" font-size="54">Fotografia real da Mariana</text>
+  <text x="138" y="1290" fill="#6d6258" font-family="Arial, sans-serif" font-size="34">placeholder identificado</text>
+  <line x1="138" y1="1348" x2="522" y2="1348" stroke="#9e6a4e" stroke-width="8"/>
+</svg>
