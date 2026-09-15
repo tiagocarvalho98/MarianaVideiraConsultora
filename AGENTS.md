@@ -55,9 +55,15 @@ Marketing / Social / Google / Meta
 
 Current implementation state:
 
-- Public website has visual routes and client-side validated mock forms, but no persistence yet.
-- CRM core is functional in development mode with mock data and in-memory repository mutations.
-- Supabase migrations and seed are prepared, but no remote Supabase project is connected.
+- Supabase real is linked and active.
+- The private CRM uses `SupabaseRepository` as the primary data source.
+- Supabase Auth is active for CRM access.
+- RLS is active and validated with normal authenticated sessions.
+- Seller and buyer public intake is active through Next.js Server Actions.
+- Public forms do not insert directly into CRM tables.
+- Public intake calls a server-side transactional PostgreSQL RPC that creates the CRM records atomically.
+- Anonymous users continue to have no direct access to CRM tables.
+- Mock data remains only where deliberately useful for development and tests.
 
 ## Stack
 
@@ -65,10 +71,11 @@ Current implementation state:
 - React
 - TypeScript strict
 - Tailwind CSS
-- Supabase Auth and Postgres planned for production
-- Supabase RLS from the first migration
+- Supabase Auth and Postgres
+- Supabase RLS from the first migration, validated against the real project
 - Repository abstraction between UI and data source
-- Mock auth and mock repository for current development
+- SupabaseRepository as the primary CRM repository
+- Mock repository/data retained for tests and deliberate development use only
 
 Do not migrate stack without a clear technical reason.
 
@@ -217,7 +224,19 @@ It should show, in priority order:
 6. opportunities without owner
 7. stale opportunities with too much time since last activity
 
-The current mock implementation computes these groups in `src/lib/crm/mock-repository.ts`. Future Supabase implementation should preserve the same repository contract.
+The repository contract exposes these groups through `getTodayQueue()`. The Supabase implementation is the active runtime; the mock implementation preserves the same behavior for tests/development.
+
+Current production behavior is implemented by `src/lib/crm/supabase-repository.ts`. Public leads created through `/vender` and `/comprar` start as:
+
+- `created_by = null`
+- `assigned_to = null`
+- `status = new`
+- `stage = nova_lead`
+- `temperature = morna`
+- `first_contact_at = null`
+- `next_action_at = null`
+
+These leads should appear on `/crm/hoje` as new uncontacted and unassigned opportunities.
 
 ## Website Management Direction
 
@@ -334,7 +353,19 @@ Deduplication strategy:
 - normalized phone is the primary identifier
 - normalized email is fallback
 - multiple null emails are acceptable
+- one person/contact can legitimately have multiple opportunities
 - do not build complex identity resolution in V1
+- never deduplicate by name
+
+Current public intake:
+
+- `/vender` and `/comprar` submit through Next.js Server Actions.
+- Server Actions validate with Zod, add server-side `user_agent` when available, and call the repository.
+- `SupabaseRepository` uses the server-only service role client to execute `public.submit_public_lead_intake(jsonb)`.
+- The RPC creates/reuses Contact, creates Opportunity, creates FormSubmission, creates Activity `form_submission`, and creates Activity `note` when a message exists.
+- The browser never receives service role credentials and never inserts directly into CRM tables.
+- `anon` has no direct table access and cannot execute the intake RPC.
+- Current rate limiting is basic and in-memory; it must be reviewed before meaningful public traffic or paid campaigns.
 
 ## Repository Architecture
 
@@ -343,31 +374,29 @@ UI must depend on `CrmRepository`, not directly on Supabase.
 Current files:
 
 - `src/lib/crm/repository.ts`: data access interface
-- `src/lib/crm/mock-repository.ts`: active development implementation
-- `src/data/mock/*`: centralized mock dataset split by table/domain
-- `src/lib/crm/supabase-repository.ts`: future adapter placeholder
-- `src/lib/crm/index.ts`: current repository selector
+- `src/lib/crm/supabase-repository.ts`: primary CRM implementation
+- `src/lib/crm/mock-repository.ts`: retained for tests and deliberate development use
+- `src/data/mock/*`: centralized mock dataset retained for tests/development
+- `src/lib/crm/index.ts`: repository selector, currently returning SupabaseRepository
 
 Do not put arrays of CRM data directly inside components. Add or change data through repository/data files.
 
 ## Current Mock Strategy
 
-The current app is intentionally not connected to a remote Supabase project.
+Mocks are no longer the primary CRM runtime. The real CRM uses Supabase Auth, RLS and SupabaseRepository.
 
-Development uses:
+Mock data and mock repository remain only where deliberately useful for:
 
-- mock auth in `src/lib/auth`
-- mock credentials in `src/lib/auth/mock-users.ts`
-- mock session cookie `mariana_mock_session`
-- mock data in `src/data/mock/*`
-- repository-derived screens in the CRM
+- unit tests
+- isolated domain behavior checks
+- local experimentation that should not touch the real database
 
 Mock users:
 
 - `mariana@example.test / mariana-dev`
 - `tiago@example.test / tiago-dev`
 
-Mock data must remain realistic enough to test daily workflows:
+If mock data is used in tests or deliberate development mode, it must remain realistic enough to test daily workflows:
 
 - Mariana consultor
 - Tiago admin
@@ -383,22 +412,20 @@ Mock data must remain realistic enough to test daily workflows:
 - proposal opportunities
 - CPCV opportunities
 
-## Future Supabase Migration Strategy
+## Supabase Runtime Strategy
 
-Do not connect to Supabase remote until UX, schema and workflows are stable.
+Supabase is now the active runtime:
 
-When ready:
+1. The project is linked to a real Supabase project.
+2. Production migrations live in `supabase/migrations`.
+3. `supabase/seed.sql` remains separate and is for local/development seed only.
+4. TypeScript database types are generated from the real database into `src/types/database.ts`.
+5. `src/lib/crm/supabase-repository.ts` is the active CRM adapter.
+6. Supabase Auth protects the private CRM.
+7. RLS has been validated for real users and temporary test users.
+8. Public seller/buyer intake is active through server-side boundaries and the transactional RPC.
 
-1. Create/link the Supabase project.
-2. Apply migrations from `supabase/migrations`.
-3. Use `supabase/seed.sql` only for development/local test data.
-4. Generate Supabase TypeScript types from the real database.
-5. Implement `src/lib/crm/supabase-repository.ts`.
-6. Switch `getCrmRepository()` to the Supabase adapter.
-7. Replace mock auth with Supabase Auth while preserving route protection.
-8. Verify RLS policies before exposing real data.
-
-The service role key must never be exposed to the browser.
+The service role key must never be exposed to the browser. It is allowed only in server-side code and scripts that explicitly require privileged database operations.
 
 ## Visual Identity: Editorial Humano
 
@@ -452,6 +479,9 @@ Do not implement these in V1 unless the scope is formally changed:
 - public fake testimonials or fake business metrics
 - newsletter system
 - complex ACL beyond admin/consultor
+- ContactForm persistence/intake without a separate domain decision
+- CMS
+- `/crm/website`
 
 ## Roadmap
 
@@ -462,9 +492,11 @@ Phase 1: Foundation
 - migrations
 - seed
 - repository abstraction
-- mock auth
-- mock CRM shell
+- Supabase Auth
+- CRM shell
 - initial CRM screens
+
+Status: completed. Supabase real, Auth and RLS are active and validated.
 
 Phase 2: Public Website And Lead Intake
 
@@ -473,9 +505,9 @@ Phase 2: Public Website And Lead Intake
 - validation
 - attribution capture
 - deduplication flow
-- mock repository write path
+- transactional Supabase public intake
 
-Current status: public pages and visual forms are implemented with client-side validation and future tracking fields. Persistence, deduplication writes and CRM intake are still intentionally not connected.
+Status: completed for SellerLeadForm and BuyerLeadForm. Public forms submit through Server Actions, server-side validation, normalization/deduplication, and transactional RPC into Supabase. ContactForm is not integrated yet.
 
 Phase 3: Operational CRM
 
@@ -486,7 +518,7 @@ Phase 3: Operational CRM
 - stage updates by dropdown
 - mark lost flow
 
-Current status: these operational CRM flows are implemented against the mock repository. They still need polish and Supabase integration later.
+Current status: core operational CRM flows use SupabaseRepository. Lost/won/next_action_at invariants are implemented and validated.
 
 Phase 4: Supabase Integration
 
@@ -496,6 +528,8 @@ Phase 4: Supabase Integration
 - real Auth
 - RLS verification
 - local/remote seed strategy
+
+Status: completed as part of Phase 1.
 
 Phase 5: Polish And Measurement
 
@@ -510,8 +544,10 @@ Phase 5: Polish And Measurement
 - TypeScript strict.
 - Avoid `any`; document the reason if unavoidable.
 - Keep service role server-only.
+- Public forms must use server-side boundaries; never insert directly into CRM tables from the browser.
 - Keep CRM inaccessible without authentication.
 - Keep RLS enabled on all public schema tables.
+- Keep anon blocked from CRM tables.
 - Do not authorize from user-editable metadata.
 - Tiago is admin; Mariana is consultant.
 - Mariana must not require admin role to manage approved future website content.
@@ -538,6 +574,13 @@ Phase 5: Polish And Measurement
 - `created_by` and `assigned_to` must remain separate.
 - Public form opportunities may have `created_by = null`.
 - Deduplication remains phone-first, email-fallback.
-- Mock repository remains the active data source until Supabase integration phase.
-- No remote Supabase connection before UX/schema/workflow stabilization.
+- A Contact may have multiple Opportunities.
+- Never deduplicate Contact by name.
+- SupabaseRepository remains the active CRM data source.
+- Mock repository/data must not become the primary CRM runtime again without justification.
+- Seller/buyer public intake must remain server-boundary + transactional RPC unless a safer approved design replaces it.
+- Public leads remain unassigned by default.
+- `perdido` remains available only through the dedicated lost operation.
+- `escritura` sets `status = won`.
+- Tasks recalculate `next_action_at`; no open relevant task means `next_action_at = null`.
 - Do not invent content for Mariana.

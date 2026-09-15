@@ -4,7 +4,7 @@ V1 foundation for a private real estate lead capture and CRM webapp.
 
 ## Main Documentation
 
-[AGENTS.md](./AGENTS.md) is the source of truth for product vision, architecture, schema, UX principles, current mock strategy and future Supabase migration. Read it before adding or changing product features.
+[AGENTS.md](./AGENTS.md) is the source of truth for product vision, architecture, schema, UX principles, Supabase runtime, public intake and future roadmap. Read it before adding or changing product features.
 
 ## Stack
 
@@ -15,20 +15,24 @@ V1 foundation for a private real estate lead capture and CRM webapp.
 - Supabase Auth
 - Supabase Postgres with RLS
 
-## Current Development Mode
+## Current Runtime
 
-The app does not connect to a remote Supabase project yet.
+The app is connected to a real Supabase project.
 
-For now, the CRM runs with:
+Current state:
 
-- production migrations kept in `supabase/migrations`
-- development seed kept in `supabase/seed.sql`
-- mock auth isolated in `src/lib/auth`
-- repository abstraction in `src/lib/crm/repository.ts`
-- active mock data access in `src/lib/crm/mock-repository.ts`
-- future Supabase adapter reserved in `src/lib/crm/supabase-repository.ts`
+- Supabase Auth protects `/crm/*`
+- Supabase RLS is active and validated
+- Tiago Carvalho is `admin`
+- Mariana Videira is `consultor`
+- the private CRM uses `src/lib/crm/supabase-repository.ts`
+- seller/buyer public intake is active through Server Actions
+- public intake uses a server-side transactional PostgreSQL RPC
+- public forms never insert directly into CRM tables
+- anonymous users have no direct access to CRM tables
+- service role is server-only
 
-This lets the UX, schema and workflows stabilize before wiring a real database.
+Mocks are no longer the primary CRM runtime. Mock data/repository files remain only for tests and deliberate development use.
 
 ## Setup
 
@@ -44,16 +48,13 @@ npm install
 npm run dev
 ```
 
-3. Use temporary mock credentials:
+3. Create `.env.local` from `.env.example` and fill the real Supabase values.
 
-```txt
-mariana@example.test / mariana-dev
-tiago@example.test / tiago-dev
-```
+4. Start development and sign in with real Supabase Auth users.
 
-## Future Supabase Setup
+## Supabase Setup
 
-When ready to connect Supabase, create `.env.local` from `.env.example`:
+Create `.env.local` from `.env.example`:
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=
@@ -63,7 +64,7 @@ SUPABASE_SERVICE_ROLE_KEY=
 
 `SUPABASE_SERVICE_ROLE_KEY` is server-only. Never expose it in client code.
 
-Then link Supabase:
+Link Supabase if needed:
 
 ```bash
 supabase login
@@ -76,7 +77,7 @@ Apply migrations:
 supabase db push
 ```
 
-Optionally load development seed locally:
+The real remote database already uses migrations from `supabase/migrations`. Use `supabase/seed.sql` only for local/development seed:
 
 ```bash
 supabase db reset
@@ -84,14 +85,41 @@ supabase db reset
 
 Or run `supabase/seed.sql` manually against a local development database.
 
-Create internal users in Supabase Auth, then add matching rows to `public.profiles`.
+Internal users are authorized through `public.profiles`, not user metadata.
 
-```sql
-insert into public.profiles (id, full_name, role)
-values
-  ('AUTH_USER_ID_FOR_MARIANA', 'Mariana [Apelido]', 'consultor'),
-  ('AUTH_USER_ID_FOR_TIAGO', 'Tiago', 'admin');
+Current required profiles:
+
+- Tiago Carvalho: `admin`, `is_active=true`
+- Mariana Videira: `consultor`, `is_active=true`
+
+## Public Intake
+
+`/vender` and `/comprar` are active.
+
+Flow:
+
+```txt
+Browser form
+  -> Next.js Server Action
+  -> Zod validation
+  -> normalization/dedupe
+  -> server-side SupabaseRepository
+  -> transactional RPC
+  -> Contact + Opportunity + FormSubmission + Activity
+  -> /crm/hoje
 ```
+
+Important rules:
+
+- dedupe Contact by normalized phone first
+- fallback to normalized email
+- never dedupe by name
+- one Contact can have multiple Opportunities
+- public leads start `assigned_to = null`
+- public leads start `created_by = null`
+- public leads start `status = new`, `stage = nova_lead`, `temperature = morna`
+- `user_agent` is captured server-side when available
+- current rate limiting is basic and in-memory; review it before meaningful public traffic
 
 ## Implemented Scope
 
@@ -99,26 +127,31 @@ Implemented:
 
 - project foundation
 - Supabase clients
-- mock auth login
-- CRM route protection
+- Supabase Auth login/logout
+- CRM route protection with active profiles
 - CRM shell
-- functional CRM routes with mock data
-- mock repository mutations for stage, assignee, temperature, activities, tasks and lost opportunities
+- functional CRM routes using SupabaseRepository
+- repository mutations for stage, assignee, temperature, activities, tasks and lost opportunities
 - public website routes
-- visual buyer/seller/contact forms with client-side validation and mock submission message
+- real buyer/seller public intake
+- visual ContactForm, not yet integrated with persistence
 - V1 database migration
+- public intake RPC migrations
 - development seed
 - repository abstraction
-- mock repository
+- mock repository retained for tests/development only
 - core TypeScript types
 - pipeline and lost reason config
+- RLS/Auth validation scripts
+- public intake smoke validation script
 
 Not implemented yet:
 
-- public website pages
-- persistent lead form submission
 - production dashboards
 - drag-and-drop
 - analytics integrations
 - automations
 - matching
+- ContactForm persistence
+- CMS
+- `/crm/website`
