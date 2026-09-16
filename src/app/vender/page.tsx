@@ -41,7 +41,7 @@ export default function SellPage() {
           />
           <div className="mt-8 flex flex-wrap gap-2">
             {sellerThemes.map((theme) => (
-              <span key={theme} className="rounded-full border border-stone-300 px-3 py-1 text-sm font-bold text-stone-700">
+              <span key={theme} className="border border-primary/30 px-3 py-1 text-sm font-bold text-primary/85">
                 {theme}
               </span>
             ))}
@@ -65,7 +65,7 @@ export default function SellPage() {
               title="Conte o essencial sobre o imovel."
               body="Os campos recolhem apenas informacao util para uma primeira leitura e ficam registados para acompanhamento no CRM."
             />
-            <Suspense fallback={<div className="rounded-[1.5rem] border border-stone-200 bg-white p-5 text-sm text-stone-600">A preparar formulario.</div>}>
+            <Suspense fallback={<div className="border border-primary/24 bg-surface p-5 text-sm text-foreground/66">A preparar formulario.</div>}>
               <SellerLeadForm />
             </Suspense>
           </div>
@@ -75,9 +75,9 @@ export default function SellPage() {
           <SectionIntro title="Perguntas frequentes" />
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {sellerFaq.map((item) => (
-              <article key={item.question} className="border-t border-stone-300 pt-4">
-                <h2 className="text-lg font-bold text-stone-950">{item.question}</h2>
-                <p className="mt-3 text-sm leading-6 text-stone-700">{item.answer}</p>
+              <article key={item.question} className="border-t border-primary/24 pt-4">
+                <h2 className="text-lg font-semibold text-foreground">{item.question}</h2>
+                <p className="mt-3 text-sm leading-6 text-foreground/66">{item.answer}</p>
               </article>
             ))}
           </div>

@@ -200,14 +200,14 @@ function TextInput({
   error?: string;
 }) {
   return (
-    <label className="grid gap-2 text-sm font-semibold text-stone-800">
+    <label className="grid gap-2 text-sm font-semibold text-foreground">
       {label}
       <input
         name={name}
         type={type}
         required={required}
         aria-invalid={Boolean(error)}
-        className="min-h-12 rounded-xl border border-border bg-white px-3 text-base text-stone-950 outline-none transition focus:border-primary"
+        className="min-h-12 border border-primary/24 bg-foreground px-3 text-base text-background outline-none transition focus:border-primary"
       />
       <FieldError error={error} />
     </label>
@@ -226,14 +226,14 @@ function SelectField({
   error?: string;
 }) {
   return (
-    <label className="grid gap-2 text-sm font-semibold text-stone-800">
+    <label className="grid gap-2 text-sm font-semibold text-foreground">
       {label}
       <select
         name={name}
         required
         defaultValue=""
         aria-invalid={Boolean(error)}
-        className="min-h-12 rounded-xl border border-border bg-white px-3 text-base text-stone-950 outline-none transition focus:border-primary"
+        className="min-h-12 border border-primary/24 bg-foreground px-3 text-base text-background outline-none transition focus:border-primary"
       >
         <option value="" disabled>
           Escolher
@@ -259,13 +259,13 @@ function TextArea({
   error?: string;
 }) {
   return (
-    <label className="grid gap-2 text-sm font-semibold text-stone-800 md:col-span-2">
+    <label className="grid gap-2 text-sm font-semibold text-foreground md:col-span-2">
       {label}
       <textarea
         name={name}
         rows={4}
         aria-invalid={Boolean(error)}
-        className="rounded-xl border border-border bg-white px-3 py-3 text-base text-stone-950 outline-none transition focus:border-primary"
+        className="border border-primary/24 bg-foreground px-3 py-3 text-base text-background outline-none transition focus:border-primary"
       />
       <FieldError error={error} />
     </label>
@@ -274,7 +274,7 @@ function TextArea({
 
 function SubmitSuccess() {
   return (
-    <div className="rounded-xl border border-primary/20 bg-primary/10 p-4 text-sm font-semibold text-primary">
+    <div className="border border-primary/25 bg-primary/10 p-4 text-sm font-semibold text-primary">
       <span className="inline-flex items-center gap-2">
         <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
         Pedido recebido. A informacao ficou registada para acompanhamento.
@@ -285,7 +285,7 @@ function SubmitSuccess() {
 
 function ContactValidationSuccess() {
   return (
-    <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm font-semibold text-stone-800">
+    <div className="border border-primary/25 bg-primary/10 p-4 text-sm font-semibold text-primary">
       Dados validados nesta pagina. Para registo no CRM, use os formularios de venda ou compra.
     </div>
   );
@@ -361,7 +361,7 @@ export function SellerLeadForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} onChange={conversion.markStarted} className="grid gap-4 rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm md:grid-cols-2">
+    <form onSubmit={onSubmit} onChange={conversion.markStarted} className="grid gap-4 border border-primary/24 bg-surface p-5 md:grid-cols-2">
       <HiddenTrackingFields />
       <HoneypotField />
       <TextInput label="Nome" name="name" required error={errors.name} />
@@ -373,14 +373,14 @@ export function SellerLeadForm() {
       <SelectField label="Prazo aproximado para vender" name="sellingTimeframe" options={sellingTimeframeOptions} error={errors.sellingTimeframe} />
       <SelectField label="Ja esta anunciado?" name="alreadyListed" options={listedOptions} error={errors.alreadyListed} />
       <TextArea label="Mensagem opcional" name="message" error={errors.message} />
-      <label className="flex gap-3 text-sm font-semibold text-stone-800 md:col-span-2">
-        <input name="privacyConsent" type="checkbox" className="mt-1 h-5 w-5 rounded border-border" />
+      <label className="flex gap-3 text-sm font-semibold text-foreground/82 md:col-span-2">
+        <input name="privacyConsent" type="checkbox" className="mt-1 h-5 w-5 border-border accent-primary" />
         <span>Aceito a politica de privacidade e autorizo o tratamento dos dados para resposta ao meu pedido.</span>
       </label>
       <FieldError error={errors.privacyConsent} />
       <FieldError error={errors.form} />
       {success ? <div className="md:col-span-2"><SubmitSuccess /></div> : null}
-      <button disabled={isSubmitting} className="min-h-12 rounded-full bg-primary px-5 text-sm font-bold uppercase text-white transition hover:bg-stone-900 disabled:cursor-not-allowed disabled:opacity-60 md:col-span-2">
+      <button disabled={isSubmitting} className="min-h-12 border border-primary bg-primary px-5 text-sm font-bold uppercase tracking-[0.18em] text-primary-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60 md:col-span-2">
         {isSubmitting ? "A enviar" : "Enviar pedido de contacto"}
       </button>
     </form>
@@ -458,7 +458,7 @@ export function BuyerLeadForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} onChange={conversion.markStarted} className="grid gap-4 rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm md:grid-cols-2">
+    <form onSubmit={onSubmit} onChange={conversion.markStarted} className="grid gap-4 border border-primary/24 bg-surface p-5 md:grid-cols-2">
       <HiddenTrackingFields />
       <HoneypotField />
       <TextInput label="Nome" name="name" required error={errors.name} />
@@ -471,14 +471,14 @@ export function BuyerLeadForm() {
       <SelectField label="Prazo para comprar" name="buyingTimeframe" options={buyingTimeframeOptions} error={errors.buyingTimeframe} />
       <SelectField label="Tem imovel para vender?" name="hasPropertyToSell" options={yesNoOptions} error={errors.hasPropertyToSell} />
       <TextArea label="Mensagem opcional" name="message" error={errors.message} />
-      <label className="flex gap-3 text-sm font-semibold text-stone-800 md:col-span-2">
-        <input name="privacyConsent" type="checkbox" className="mt-1 h-5 w-5 rounded border-border" />
+      <label className="flex gap-3 text-sm font-semibold text-foreground/82 md:col-span-2">
+        <input name="privacyConsent" type="checkbox" className="mt-1 h-5 w-5 border-border accent-primary" />
         <span>Aceito a politica de privacidade e autorizo o tratamento dos dados para resposta ao meu pedido.</span>
       </label>
       <FieldError error={errors.privacyConsent} />
       <FieldError error={errors.form} />
       {success ? <div className="md:col-span-2"><SubmitSuccess /></div> : null}
-      <button disabled={isSubmitting} className="min-h-12 rounded-full bg-primary px-5 text-sm font-bold uppercase text-white transition hover:bg-stone-900 disabled:cursor-not-allowed disabled:opacity-60 md:col-span-2">
+      <button disabled={isSubmitting} className="min-h-12 border border-primary bg-primary px-5 text-sm font-bold uppercase tracking-[0.18em] text-primary-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60 md:col-span-2">
         {isSubmitting ? "A enviar" : "Enviar pedido de acompanhamento"}
       </button>
     </form>
@@ -528,20 +528,20 @@ export function ContactForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-4 rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm md:grid-cols-2">
+    <form onSubmit={onSubmit} className="grid gap-4 border border-primary/24 bg-surface p-5 md:grid-cols-2">
       <HiddenTrackingFields />
       <TextInput label="Nome" name="name" required error={errors.name} />
       <TextInput label="Telefone" name="phone" type="tel" required error={errors.phone} />
       <TextInput label="Email opcional" name="email" type="email" error={errors.email} />
       <SelectField label="Tema" name="topic" options={contactTopicOptions} error={errors.topic} />
       <TextArea label="Mensagem" name="message" error={errors.message} />
-      <label className="flex gap-3 text-sm font-semibold text-stone-800 md:col-span-2">
-        <input name="privacyConsent" type="checkbox" className="mt-1 h-5 w-5 rounded border-border" />
+      <label className="flex gap-3 text-sm font-semibold text-foreground/82 md:col-span-2">
+        <input name="privacyConsent" type="checkbox" className="mt-1 h-5 w-5 border-border accent-primary" />
         <span>Aceito a politica de privacidade e autorizo o tratamento dos dados para resposta ao meu pedido.</span>
       </label>
       <FieldError error={errors.privacyConsent} />
       {success ? <div className="md:col-span-2"><ContactValidationSuccess /></div> : null}
-      <button className="min-h-12 rounded-full bg-primary px-5 text-sm font-bold uppercase text-white transition hover:bg-stone-900 md:col-span-2">
+      <button className="min-h-12 border border-primary bg-primary px-5 text-sm font-bold uppercase tracking-[0.18em] text-primary-foreground transition hover:bg-accent md:col-span-2">
         Validar dados
       </button>
     </form>

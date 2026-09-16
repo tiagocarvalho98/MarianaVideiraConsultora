@@ -46,21 +46,21 @@ export default function AboutPage() {
 
         <EditorialBand>
           <div className="grid gap-8 md:grid-cols-3">
-            <article className="border-t border-stone-300 pt-4">
-              <h2 className="text-xl font-bold text-stone-950">Experiencia</h2>
-              <p className="mt-3 leading-7 text-stone-700">
+            <article className="border-t border-primary/24 pt-4">
+              <h2 className="text-xl font-semibold text-foreground">Experiencia</h2>
+              <p className="mt-3 leading-7 text-foreground/66">
                 [Placeholder: experiencia profissional confirmada.]
               </p>
             </article>
-            <article className="border-t border-stone-300 pt-4">
-              <h2 className="text-xl font-bold text-stone-950">Conhecimento local</h2>
-              <p className="mt-3 leading-7 text-stone-700">
+            <article className="border-t border-primary/24 pt-4">
+              <h2 className="text-xl font-semibold text-foreground">Conhecimento local</h2>
+              <p className="mt-3 leading-7 text-foreground/66">
                 Areas em configuracao: {brand.serviceAreas.join(", ")}.
               </p>
             </article>
-            <article className="border-t border-stone-300 pt-4">
-              <h2 className="text-xl font-bold text-stone-950">Rede</h2>
-              <p className="mt-3 leading-7 text-stone-700">
+            <article className="border-t border-primary/24 pt-4">
+              <h2 className="text-xl font-semibold text-foreground">Rede</h2>
+              <p className="mt-3 leading-7 text-foreground/66">
                 {brand.company} · {brand.network}
               </p>
             </article>

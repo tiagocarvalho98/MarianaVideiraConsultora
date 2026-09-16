@@ -1,22 +1,25 @@
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap");
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: 36 33% 97%;
-  --foreground: 28 22% 13%;
-  --surface: 0 0% 100%;
-  --muted: 35 18% 91%;
-  --border: 32 18% 84%;
-  --primary: 151 24% 24%;
-  --primary-foreground: 0 0% 100%;
-  --accent: 18 38% 45%;
+  --background: 209 86% 9%;
+  --foreground: 36 39% 93%;
+  --surface: 209 77% 12%;
+  --muted: 209 45% 18%;
+  --border: 35 49% 66%;
+  --primary: 35 51% 65%;
+  --primary-foreground: 209 86% 9%;
+  --accent: 35 62% 76%;
   --destructive: 0 72% 43%;
-  --font-display: "Fraunces";
-  --font-sans: "Manrope";
-  --font-mono: "JetBrains Mono";
+  --font-mono: "Courier New";
+  --navy-950: #020f1c;
+  --navy-900: #03182a;
+  --navy-850: #041a2d;
+  --navy-800: #071f34;
+  --champagne-500: #d6ae78;
+  --champagne-300: #e5c79d;
+  --ivory-100: #f4efe7;
 }
 
 * {
@@ -57,6 +60,37 @@ textarea {
 ::selection {
   background: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
+}
+
+.font-display {
+  font-feature-settings: "liga" 1, "kern" 1;
+}
+
+.luxury-section {
+  background:
+    linear-gradient(180deg, rgba(229, 199, 157, 0.05), rgba(229, 199, 157, 0)),
+    hsl(var(--background));
+}
+
+.fine-line {
+  background: linear-gradient(90deg, transparent, rgba(229, 199, 157, 0.6), transparent);
+  height: 1px;
+}
+
+.reveal-soft {
+  animation: reveal-soft 700ms ease-out both;
+}
+
+@keyframes reveal-soft {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
