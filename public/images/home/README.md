@@ -25,9 +25,17 @@ Recommended files:
   - Recommended: 2400px wide.
   - Subject: balcony, terrace, contemporary apartment or warm residential view suitable for buyer positioning.
 
-- `mariana.jpg`
-  - Missing final asset.
+- `/Assets/mariana-home.png`
+  - Current: approved Mariana homepage cutout photo.
   - Aspect ratio: 4:5 portrait.
   - Minimum: 1400px wide.
   - Recommended: 2000px wide.
   - Subject: approved real photo of Mariana only. Do not use stock people.
+
+Current assets available outside this folder:
+
+- `/Assets/mariana-home.png`: homepage profile image.
+- `/Assets/mariana-about.png`: reserved for `/sobre`.
+- `/Assets/mariana-contact.jpeg`: reserved for `/contacto` or a future appropriate context.
+- `/Assets/mariana-remax.png`: reserved for `/vender` or a future institutional context.
+- `/Assets/mariana-keys.png`: reserved for `/comprar` or a future delivery/keys context.

@@ -16,6 +16,11 @@ const heroImage = {
   alt: "Imagem editorial fornecida para a homepage: interior contemporaneo com terraco e vista para o Tejo ao por do sol.",
 } as const;
 
+const marianaHomeImage = {
+  src: "/Assets/mariana-home.png",
+  alt: "Mariana Videira, consultora imobiliária",
+} as const;
+
 const visualEntries = [
   {
     href: "/vender",
@@ -168,22 +173,44 @@ function VisualEntrySection() {
 
 function MarianaSection() {
   return (
-    <section className="luxury-section border-b border-primary/10">
-      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-20 lg:grid-cols-[0.35fr_0.65fr] lg:px-8 lg:py-24">
-        <p className="text-[0.68rem] font-bold uppercase tracking-[0.38em] text-primary">
-          Sobre
-        </p>
-        <div className="max-w-4xl">
-          <h2 className="font-display text-5xl font-medium leading-[0.96] text-foreground md:text-7xl">
-            Relacoes que constroem futuro.
-          </h2>
-          <p className="mt-8 max-w-2xl text-lg leading-8 text-foreground/66">
-            Uma presenca proxima e criteriosa para acompanhar decisoes
-            imobiliarias com respeito pelo tempo, pelo contexto e pelo valor de
-            cada patrimonio.
+    <section className="luxury-section overflow-hidden border-b border-primary/10">
+      <div className="mx-auto grid max-w-7xl items-end gap-10 px-5 pt-16 lg:grid-cols-[0.44fr_0.56fr] lg:gap-14 lg:px-8 lg:pt-24">
+        <div className="relative order-2 min-h-[29rem] md:min-h-[38rem] lg:order-1 lg:min-h-[43rem]">
+          <div
+            className="absolute bottom-0 left-[8%] h-[82%] w-[72%] bg-primary/[0.08]"
+            aria-hidden="true"
+          />
+          <div
+            className="absolute bottom-8 left-0 h-px w-3/5 bg-primary/40"
+            aria-hidden="true"
+          />
+          <Image
+            src={marianaHomeImage.src}
+            alt={marianaHomeImage.alt}
+            fill
+            sizes="(min-width: 1024px) 42vw, (min-width: 768px) 58vw, 92vw"
+            className="object-contain object-bottom"
+          />
+        </div>
+
+        <div className="order-1 pb-4 lg:order-2 lg:pb-28">
+          <p className="text-[0.68rem] font-bold uppercase tracking-[0.38em] text-primary">
+            SOBRE
           </p>
-          <div className="mt-10">
-            <ArrowLink href="/sobre">Conhecer a Mariana</ArrowLink>
+          <div className="mt-7 max-w-4xl">
+            <h2 className="font-display text-5xl font-medium leading-[0.96] text-foreground md:text-7xl">
+              Relações que constroem
+              <br />
+              futuro.
+            </h2>
+            <p className="mt-8 max-w-2xl text-lg leading-8 text-foreground/66">
+              Acompanhamento próximo e criterioso para decisões imobiliárias
+              com respeito pelo tempo, pelo contexto e pelo valor de cada
+              património.
+            </p>
+            <div className="mt-10">
+              <ArrowLink href="/sobre">Conhecer a Mariana</ArrowLink>
+            </div>
           </div>
         </div>
       </div>
