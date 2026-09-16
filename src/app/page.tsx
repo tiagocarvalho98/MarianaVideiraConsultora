@@ -11,22 +11,25 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
+const heroImage = {
+  src: "/images/home/hero.png",
+  alt: "Imagem editorial fornecida para a homepage: interior contemporaneo com terraco e vista para o Tejo ao por do sol.",
+} as const;
+
 const visualEntries = [
   {
     href: "/vender",
-    image: "/placeholders/seller-interior-placeholder.svg",
     place: "Montijo",
     title: "Vender",
     body: "Valorize o seu imovel",
-    alt: "Placeholder editorial de interior premium para substituir por fotografia aprovada.",
+    slot: "sell",
   },
   {
     href: "/comprar",
-    image: "/placeholders/buyer-terrace-placeholder.svg",
     place: "Alcochete",
     title: "Comprar",
     body: "Encontre o seu proximo lar",
-    alt: "Placeholder editorial de terraco contemporaneo para substituir por fotografia aprovada.",
+    slot: "buy",
   },
 ] as const;
 
@@ -45,7 +48,7 @@ function ArrowLink({
       className={
         variant === "filled"
           ? "inline-flex min-h-12 items-center justify-center gap-3 border border-primary bg-primary px-6 text-xs font-bold uppercase tracking-[0.24em] text-primary-foreground transition duration-200 hover:bg-accent"
-          : "inline-flex min-h-12 items-center justify-center gap-3 border border-primary/55 px-6 text-xs font-bold uppercase tracking-[0.24em] text-primary transition duration-200 hover:bg-primary hover:text-primary-foreground"
+          : "inline-flex min-h-12 items-center justify-center gap-3 border border-primary/45 px-6 text-xs font-bold uppercase tracking-[0.24em] text-primary transition duration-200 hover:bg-primary hover:text-primary-foreground"
       }
     >
       {children}
@@ -56,17 +59,38 @@ function ArrowLink({
 
 function HomeHero() {
   return (
-    <section className="relative overflow-hidden bg-background">
-      <div className="mx-auto grid min-h-[86dvh] max-w-7xl gap-12 px-5 py-14 md:min-h-[90dvh] lg:grid-cols-[0.88fr_1.12fr] lg:items-center lg:px-8 lg:py-20">
-        <div className="reveal-soft relative z-10">
+    <section className="relative isolate min-h-[88dvh] overflow-hidden bg-background lg:min-h-[calc(100dvh-5.5rem)]">
+      <div className="absolute inset-x-0 top-0 z-0 h-px bg-primary/10" />
+      <div className="absolute inset-0 z-0 lg:left-[39%]">
+        <Image
+          src={heroImage.src}
+          alt={heroImage.alt}
+          fill
+          priority
+          sizes="(min-width: 1024px) 62vw, 100vw"
+          className="object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/82 via-background/24 to-background/86 lg:bg-gradient-to-r lg:from-background lg:via-background/58 lg:to-background/8" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_76%_28%,rgba(214,174,120,0.18),transparent_34%)]" />
+      </div>
+
+      <div className="relative z-10 mx-auto flex min-h-[88dvh] max-w-7xl items-center px-5 py-16 lg:min-h-[calc(100dvh-5.5rem)] lg:px-8">
+        <div className="reveal-soft max-w-[46rem] pt-10 lg:max-w-[50rem] lg:pt-0">
           <p className="text-[0.68rem] font-bold uppercase tracking-[0.38em] text-primary">
             Montijo / Alcochete
           </p>
-          <h1 className="mt-7 max-w-4xl font-display text-[clamp(3.65rem,14vw,8rem)] font-medium leading-[0.86] text-foreground md:text-[clamp(5.5rem,8vw,8rem)]">
-            <span className="hidden md:inline">
+          <h1 className="mt-7 font-display text-[clamp(3.35rem,13vw,5.7rem)] font-medium leading-[0.9] text-foreground md:text-[clamp(5rem,8vw,7.7rem)] lg:max-w-[48rem] xl:text-[7.9rem]">
+            <span className="hidden xl:inline">
               Confie o que mais valoriza
               <br />
               a quem sabe cuidar.
+            </span>
+            <span className="hidden md:inline xl:hidden">
+              Confie o que mais
+              <br />
+              valoriza a quem
+              <br />
+              sabe cuidar.
             </span>
             <span className="md:hidden">
               Confie o que
@@ -78,7 +102,7 @@ function HomeHero() {
               cuidar.
             </span>
           </h1>
-          <p className="mt-7 max-w-xl text-base leading-8 text-foreground/66 md:text-lg">
+          <p className="mt-7 max-w-xl text-base leading-8 text-foreground/72 md:text-lg">
             Acompanhamento imobiliario com presenca, criterio e atencao ao
             patrimonio que esta em decisao.
           </p>
@@ -89,52 +113,36 @@ function HomeHero() {
             <ArrowLink href="/comprar">Comprar um imovel</ArrowLink>
           </div>
         </div>
-
-        <div className="relative min-h-[24rem] lg:min-h-[44rem]">
-          <div className="absolute inset-x-8 top-0 hidden h-px bg-primary/35 lg:block" />
-          <div className="relative h-full min-h-[24rem] overflow-hidden border border-primary/18 bg-surface lg:min-h-[44rem]">
-            <Image
-              src="/placeholders/architecture-hero-placeholder.svg"
-              alt="Placeholder editorial de arquitetura contemporanea. Substituir por fotografia licenciada de Montijo ou Alcochete quando aprovada."
-              fill
-              priority
-              sizes="(min-width: 1024px) 54vw, 100vw"
-              className="object-cover opacity-90"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-background/76 via-background/12 to-transparent lg:from-background/28" />
-            <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between gap-4 border-t border-primary/28 pt-5">
-              <p className="max-w-xs text-xs leading-6 text-foreground/58">
-                Placeholder editorial. Substituir por fotografia real licenciada.
-              </p>
-              <span className="hidden text-[0.62rem] font-bold uppercase tracking-[0.34em] text-primary/78 sm:inline">
-                Patrimonio / cuidado
-              </span>
-            </div>
-          </div>
-        </div>
       </div>
-      <div className="fine-line mx-auto max-w-7xl" />
     </section>
+  );
+}
+
+function PendingPhotoSurface({ slot }: { slot: "sell" | "buy" }) {
+  const tone =
+    slot === "sell"
+      ? "from-background via-surface to-[#061b2d]"
+      : "from-[#061b2d] via-surface to-background";
+
+  return (
+    <div
+      className={`absolute inset-0 bg-gradient-to-br ${tone}`}
+      aria-hidden="true"
+    />
   );
 }
 
 function VisualEntrySection() {
   return (
-    <section className="grid border-y border-primary/18 bg-[#020f1c] lg:grid-cols-2">
+    <section className="grid min-h-[55dvh] border-y border-primary/10 bg-[#020f1c] lg:min-h-[68dvh] lg:grid-cols-2">
       {visualEntries.map((entry) => (
         <Link
           key={entry.href}
           href={entry.href}
-          className="group relative min-h-[34rem] overflow-hidden border-primary/18 lg:border-r"
+          className="group relative min-h-[30rem] overflow-hidden lg:min-h-[68dvh]"
         >
-          <Image
-            src={entry.image}
-            alt={entry.alt}
-            fill
-            sizes="(min-width: 1024px) 50vw, 100vw"
-            className="object-cover transition duration-500 group-hover:scale-[1.025]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/46 to-background/10" />
+          <PendingPhotoSurface slot={entry.slot} />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/36 to-background/10 transition duration-300 group-hover:from-background/82" />
           <div className="absolute inset-x-0 bottom-0 p-6 md:p-10">
             <p className="text-[0.65rem] font-bold uppercase tracking-[0.38em] text-primary">
               {entry.place}
@@ -142,12 +150,12 @@ function VisualEntrySection() {
             <h2 className="mt-4 font-display text-6xl font-medium uppercase leading-none text-foreground md:text-7xl">
               {entry.title}
             </h2>
-            <div className="mt-5 flex items-center justify-between gap-5 border-t border-primary/35 pt-5">
+            <div className="mt-5 flex items-center justify-between gap-5 border-t border-primary/20 pt-5">
               <p className="text-xs font-bold uppercase tracking-[0.28em] text-foreground/70">
                 {entry.body}
               </p>
               <ArrowRight
-                className="h-5 w-5 shrink-0 text-primary transition group-hover:translate-x-1"
+                className="h-5 w-5 shrink-0 text-primary transition duration-200 group-hover:translate-x-1"
                 aria-hidden="true"
               />
             </div>
@@ -160,13 +168,13 @@ function VisualEntrySection() {
 
 function MarianaSection() {
   return (
-    <section className="luxury-section border-b border-primary/14">
-      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-24 lg:grid-cols-[0.35fr_0.65fr] lg:px-8">
+    <section className="luxury-section border-b border-primary/10">
+      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-20 lg:grid-cols-[0.35fr_0.65fr] lg:px-8 lg:py-24">
         <p className="text-[0.68rem] font-bold uppercase tracking-[0.38em] text-primary">
           Sobre
         </p>
-        <div>
-          <h2 className="max-w-4xl font-display text-5xl font-medium leading-[0.96] text-foreground md:text-7xl">
+        <div className="max-w-4xl">
+          <h2 className="font-display text-5xl font-medium leading-[0.96] text-foreground md:text-7xl">
             Relacoes que constroem futuro.
           </h2>
           <p className="mt-8 max-w-2xl text-lg leading-8 text-foreground/66">
@@ -186,7 +194,7 @@ function MarianaSection() {
 function FinalCta() {
   return (
     <section className="bg-background">
-      <div className="mx-auto px-5 py-24 text-center lg:px-8">
+      <div className="mx-auto px-5 py-20 text-center lg:px-8 lg:py-24">
         <p className="text-[0.68rem] font-bold uppercase tracking-[0.38em] text-primary">
           Proximo passo
         </p>

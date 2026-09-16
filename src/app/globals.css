@@ -73,7 +73,7 @@ textarea {
 }
 
 .fine-line {
-  background: linear-gradient(90deg, transparent, rgba(229, 199, 157, 0.6), transparent);
+  background: linear-gradient(90deg, transparent, rgba(229, 199, 157, 0.24), transparent);
   height: 1px;
 }
 

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Menu } from "lucide-react";
-import { brand, publicNavItems } from "@/config/brand";
+import { publicNavItems } from "@/config/brand";
 
 function LogoMark() {
   return (
@@ -84,7 +84,7 @@ export function PublicHeader() {
 export function PublicFooter() {
   return (
     <footer className="border-t border-primary/18 bg-[#020f1c] text-foreground">
-      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 md:grid-cols-[1.15fr_1fr] lg:px-8">
+      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 md:grid-cols-[1.15fr_0.85fr] lg:px-8">
         <div>
           <LogoMark />
           <p className="mt-6 max-w-md text-sm leading-7 text-foreground/62">
@@ -96,7 +96,7 @@ export function PublicFooter() {
           </p>
         </div>
 
-        <div className="grid gap-8 sm:grid-cols-2">
+        <div>
           <div>
             <p className="text-[0.68rem] font-bold uppercase tracking-[0.28em] text-primary">
               Navegacao
@@ -112,19 +112,6 @@ export function PublicFooter() {
               </Link>
               <Link href="/cookies" className="hover:text-primary">
                 Cookies
-              </Link>
-            </div>
-          </div>
-
-          <div>
-            <p className="text-[0.68rem] font-bold uppercase tracking-[0.28em] text-primary">
-              Rede
-            </p>
-            <div className="mt-4 grid gap-3 text-sm text-foreground/68">
-              <span>{brand.network}</span>
-              <span>{brand.company}</span>
-              <Link href="/login" className="text-foreground/42 hover:text-primary">
-                CRM
               </Link>
             </div>
           </div>
