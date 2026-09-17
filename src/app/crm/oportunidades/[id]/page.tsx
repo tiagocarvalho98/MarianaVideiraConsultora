@@ -84,6 +84,18 @@ export default async function OpportunityDetailPage({
                 </dd>
               </div>
               <div>
+                <dt className="font-bold text-stone-500">Tipo de imovel</dt>
+                <dd className="mt-1 text-stone-50">
+                  {opportunity.propertyType ?? "Por confirmar"}
+                </dd>
+              </div>
+              <div>
+                <dt className="font-bold text-stone-500">Tipologia</dt>
+                <dd className="mt-1 text-stone-50">
+                  {opportunity.typology ?? "Por confirmar"}
+                </dd>
+              </div>
+              <div>
                 <dt className="font-bold text-stone-500">Stage</dt>
                 <dd className="mt-1 text-stone-50">{formatStage(opportunity.stage)}</dd>
               </div>

@@ -23,7 +23,7 @@ export const sellingTimeframeOptions = [
 
 export const listedOptions = ["Sim", "Nao", "Ainda nao decidi"] as const;
 
-export const typologyOptions = ["T1", "T2", "T3", "T4+", "Moradia", "Outro"] as const;
+export const typologyOptions = ["T1", "T2", "T3", "T4+", "T5+", "Outro"] as const;
 
 export const budgetOptions = [
   "Ate 175.000 EUR",

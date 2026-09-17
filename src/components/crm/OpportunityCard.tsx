@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertCircle, CalendarClock, MapPin, UserRound } from "lucide-react";
+import { AlertCircle, Building2, CalendarClock, MapPin, UserRound } from "lucide-react";
 import { AttentionBadge, TemperatureBadge, TypeBadge } from "./Badges";
 import {
   formatContactName,
@@ -31,6 +31,9 @@ export function OpportunityCard({
   );
   const requiresAttention =
     !opportunity.assignedTo || !opportunity.nextActionAt || isOverdue;
+  const propertySummary = [opportunity.propertyType, opportunity.typology]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <article
@@ -63,6 +66,12 @@ export function OpportunityCard({
           <MapPin className="h-4 w-4 text-accent/70" aria-hidden="true" />
           {opportunity.location ?? "Localizacao por confirmar"}
         </span>
+        {propertySummary ? (
+          <span className="flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-accent/70" aria-hidden="true" />
+            {propertySummary}
+          </span>
+        ) : null}
         <span className="flex items-center gap-2">
           <UserRound className="h-4 w-4 text-accent/70" aria-hidden="true" />
           {opportunity.assignedProfile?.fullName ?? "Sem responsavel"}
