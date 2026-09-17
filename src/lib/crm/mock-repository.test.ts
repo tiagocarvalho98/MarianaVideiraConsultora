@@ -63,9 +63,14 @@ describe("mock CRM repository", () => {
     const repository = createMockCrmRepository();
     const buyers = await repository.getOpportunities({ type: "buyer" });
     const sellers = await repository.getOpportunities({ type: "seller" });
+    const sellersWithEmptyAssigneeParam = await repository.getOpportunities({
+      type: "seller",
+      assignedTo: undefined,
+    });
 
     expect(buyers.length).toBeGreaterThan(0);
     expect(sellers.length).toBeGreaterThan(0);
+    expect(sellersWithEmptyAssigneeParam.length).toBe(sellers.length);
     expect(buyers.every((opportunity) => opportunity.type === "buyer")).toBe(true);
     expect(sellers.every((opportunity) => opportunity.type === "seller")).toBe(true);
   });

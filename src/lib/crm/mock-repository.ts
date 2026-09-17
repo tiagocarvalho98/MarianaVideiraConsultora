@@ -125,7 +125,7 @@ function filterOpportunities(
     const matchesType = filters?.type ? opportunity.type === filters.type : true;
     const matchesStatus = filters?.status ? opportunity.status === filters.status : true;
     const matchesAssignee =
-      filters && "assignedTo" in filters
+      filters?.assignedTo !== undefined
         ? opportunity.assignedTo === filters.assignedTo
         : true;
     const matchesTemperature = filters?.temperature
