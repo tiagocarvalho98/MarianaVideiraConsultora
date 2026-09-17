@@ -1,7 +1,6 @@
 import { Filter } from "lucide-react";
-import { OpportunityCard } from "@/components/crm/OpportunityCard";
-import { OpportunityControls } from "@/components/crm/OpportunityControls";
 import { PageIntro } from "@/components/crm/PageIntro";
+import { PipelineOpportunityDialog } from "@/components/crm/PipelineOpportunityDialog";
 import { buyerPipelineStages, sellerPipelineStages } from "@/data/pipeline-stages";
 import { leadTemperatures } from "@/data/temperatures";
 import { getCrmRepository } from "@/lib/crm";
@@ -42,26 +41,27 @@ function PipelineBoard({
           {opportunities.length}
         </span>
       </div>
-      <div className="relative mt-4 grid gap-4 xl:grid-cols-3">
+      <div className="relative mt-4 grid gap-3 xl:grid-cols-3">
         {stages.map((stage) => {
           const stageOpportunities = opportunities.filter(
             (opportunity) => opportunity.stage === stage.id,
           );
 
           return (
-            <div key={stage.id} className="rounded-2xl border border-white/10 bg-white/[0.035] p-3">
+            <div key={stage.id} className="rounded-2xl border border-white/10 bg-white/[0.035] p-2.5">
               <div className="flex items-center justify-between gap-3 px-1 py-2">
                 <h3 className="text-sm font-bold text-stone-200">{stage.label}</h3>
                 <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-bold text-stone-300">
                   {stageOpportunities.length}
                 </span>
               </div>
-              <div className="mt-2 space-y-3">
+              <div className="mt-2 space-y-2">
                 {stageOpportunities.map((opportunity) => (
-                  <div key={opportunity.id} className="space-y-2">
-                    <OpportunityCard opportunity={opportunity} compact />
-                    <OpportunityControls opportunity={opportunity} profiles={profiles} compact />
-                  </div>
+                  <PipelineOpportunityDialog
+                    key={opportunity.id}
+                    opportunity={opportunity}
+                    profiles={profiles}
+                  />
                 ))}
                 {stageOpportunities.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-accent/25 bg-white/5 p-4 text-sm text-stone-400">
