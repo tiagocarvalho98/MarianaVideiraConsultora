@@ -20,10 +20,19 @@ import {
 import {
   mapBuyerLeadFormToIntake,
   mapSellerLeadFormToIntake,
+  normalizeEmail,
+  normalizePhone,
   type BuyerLeadInput,
   type MappedLeadIntake,
   type SellerLeadInput,
 } from "./intake";
+import {
+  findExistingManualContact,
+  formatManualTaskTitle,
+  manualOpportunitySchema,
+  splitManualContactName,
+  type ManualOpportunityInput,
+} from "./manual-opportunity";
 import type {
   Activity,
   Contact,
@@ -38,7 +47,7 @@ import type {
   TodayQueueGroup,
 } from "@/types/crm";
 
-const currentMockProfileId = "10000000-0000-4000-8000-000000000001";
+const defaultMockProfileId = "10000000-0000-4000-8000-000000000001";
 const staleThresholdDays = 7;
 
 type MockRepositoryState = {
@@ -259,10 +268,18 @@ function buildDashboardMetrics(
   };
 }
 
+type MockRepositoryOptions = {
+  currentProfileId?: string | null;
+  currentProfileIsActive?: boolean;
+};
+
 export function createMockCrmRepository(
   initialState: MockRepositoryState = cloneState(),
+  options: MockRepositoryOptions = {},
 ): CrmRepository {
   const state = initialState;
+  const currentMockProfileId =
+    "currentProfileId" in options ? options.currentProfileId : defaultMockProfileId;
 
   const toRelations = (): OpportunityWithRelations[] =>
     state.opportunities.map((opportunity) => {
@@ -354,6 +371,149 @@ export function createMockCrmRepository(
     );
   };
 
+  const currentActiveProfile = () => {
+    if (!currentMockProfileId) return null;
+    if (options.currentProfileIsActive === false) return null;
+
+    return (
+      state.profiles.find(
+        (profile) =>
+          profile.id === currentMockProfileId &&
+          profile.isActive &&
+          (profile.role === "admin" || profile.role === "consultor"),
+      ) ?? null
+    );
+  };
+
+  const createManualOpportunityInMemory = async (input: ManualOpportunityInput) => {
+    const parsed = manualOpportunitySchema.parse(input);
+    const currentProfile = currentActiveProfile();
+
+    if (!currentProfile) {
+      throw new Error("Not allowed to create manual opportunities");
+    }
+
+    const timestamp = now().toISOString();
+    const assignedTo = parsed.opportunity.assignedTo ?? currentProfile.id;
+    const assignedProfile = state.profiles.find(
+      (profile) =>
+        profile.id === assignedTo &&
+        profile.isActive &&
+        (profile.role === "admin" || profile.role === "consultor"),
+    );
+
+    if (!assignedProfile) {
+      throw new Error("Assigned profile is not an active CRM user");
+    }
+
+    if (!state.leadSources.some((source) => source.id === parsed.opportunity.sourceId)) {
+      throw new Error("Lead source not found");
+    }
+
+    let contact = parsed.contactId
+      ? state.contacts.find((item) => item.id === parsed.contactId) ?? null
+      : null;
+
+    if (parsed.contactId && !contact) {
+      throw new Error("Contact not found");
+    }
+
+    if (!contact) {
+      const existingContact = findExistingManualContact(state.contacts, {
+        phone: parsed.contact.phone,
+        email: parsed.contact.email,
+      });
+
+      contact = existingContact
+        ? state.contacts.find((item) => item.id === existingContact.id) ?? null
+        : null;
+    }
+
+    if (!contact) {
+      const { firstName, lastName } = splitManualContactName(parsed.contact.name ?? "");
+      contact = {
+        id: makeId("20000000", state.contacts.length + 1),
+        firstName,
+        lastName,
+        phone: parsed.contact.phone ?? "",
+        phoneNormalized: normalizePhone(parsed.contact.phone ?? ""),
+        email: parsed.contact.email,
+        emailNormalized: normalizeEmail(parsed.contact.email),
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+      state.contacts.push(contact);
+    }
+
+    const opportunity: Opportunity = {
+      id: makeId("40000000", state.opportunities.length + 1),
+      contactId: contact.id,
+      type: parsed.opportunity.type,
+      status: "new",
+      stage: "nova_lead",
+      temperature: parsed.opportunity.temperature,
+      createdBy: currentProfile.id,
+      assignedTo,
+      sourceId: parsed.opportunity.sourceId,
+      location: parsed.opportunity.location,
+      budgetMin: parsed.opportunity.budgetMin,
+      budgetMax: parsed.opportunity.budgetMax,
+      propertyType: parsed.opportunity.propertyType,
+      timeframe: parsed.opportunity.timeframe,
+      financingStatus: parsed.opportunity.financingStatus,
+      currentPropertyToSell: parsed.opportunity.currentPropertyToSell,
+      propertyAlreadyListed: parsed.opportunity.propertyAlreadyListed,
+      nextActionAt: null,
+      firstContactAt: null,
+      lastActivityAt: null,
+      lostReason: null,
+      lostNotes: null,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+
+    state.opportunities.push(opportunity);
+
+    await repository.addActivity({
+      opportunityId: opportunity.id,
+      userId: currentProfile.id,
+      type: "note",
+      title: "Oportunidade criada manualmente",
+      metadata: {
+        origin: "manual",
+        created_by: currentProfile.id,
+        source_id: parsed.opportunity.sourceId,
+        assigned_to: assignedTo,
+        seller_situation: parsed.opportunity.sellerSituation,
+      },
+      occurredAt: timestamp,
+    });
+
+    if (parsed.note) {
+      await repository.addActivity({
+        opportunityId: opportunity.id,
+        userId: currentProfile.id,
+        type: "note",
+        title: "Nota inicial",
+        body: parsed.note,
+        metadata: { source: "manual_creation" },
+        occurredAt: timestamp,
+      });
+    }
+
+    const task = parsed.nextTask
+      ? await repository.createTask({
+          opportunityId: opportunity.id,
+          assignedTo,
+          title: formatManualTaskTitle(parsed.nextTask.type, parsed.nextTask.title),
+          dueAt: new Date(parsed.nextTask.dueAt).toISOString(),
+          priority: "normal",
+        })
+      : null;
+
+    return { contact, opportunity, task };
+  };
+
   const submitLeadIntake = async (intake: MappedLeadIntake) => {
     const timestamp = now().toISOString();
     const contact =
@@ -427,7 +587,7 @@ export function createMockCrmRepository(
 
   const repository: CrmRepository = {
     async getCurrentUser() {
-      return state.profiles.find((profile) => profile.id === currentMockProfileId) ?? null;
+      return currentActiveProfile();
     },
     async getCurrentProfile() {
       return repository.getCurrentUser();
@@ -467,6 +627,9 @@ export function createMockCrmRepository(
     },
     async submitBuyerLead(input: BuyerLeadInput) {
       return submitLeadIntake(mapBuyerLeadFormToIntake(input));
+    },
+    async createManualOpportunity(input: ManualOpportunityInput) {
+      return createManualOpportunityInMemory(input);
     },
     async getActivities(opportunityId) {
       return state.activities

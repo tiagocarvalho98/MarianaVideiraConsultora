@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { brand } from "@/config/brand";
 
 export function Hero({
   eyebrow,
@@ -11,6 +10,7 @@ export function Hero({
   primaryLabel,
   secondaryHref,
   secondaryLabel,
+  image,
 }: {
   eyebrow: string;
   title: string;
@@ -19,10 +19,56 @@ export function Hero({
   primaryLabel: string;
   secondaryHref?: string;
   secondaryLabel?: string;
+  image?: {
+    src: string;
+    alt: string;
+    objectPosition?: string;
+  };
 }) {
+  if (image) {
+    return (
+      <section className="overflow-hidden border-b border-primary/14 bg-background">
+        <div className="grid lg:grid-cols-[0.4fr_0.6fr]">
+          <div className="relative min-h-[45dvh] max-h-[34rem] overflow-hidden lg:order-2 lg:h-[clamp(37.5rem,68vh,42.5rem)] lg:max-h-none">
+            <Image
+              src={image.src}
+              alt={image.alt}
+              fill
+              priority
+              sizes="(min-width: 1024px) 60vw, 100vw"
+              className="object-cover"
+              style={{ objectPosition: image.objectPosition ?? "center" }}
+            />
+          </div>
+
+          <div className="flex min-h-[24rem] items-center px-5 py-14 lg:h-[clamp(37.5rem,68vh,42.5rem)] lg:px-10 xl:px-14">
+            <div className="mx-auto w-full max-w-xl lg:mx-0">
+              <p className="text-[0.68rem] font-bold uppercase tracking-[0.34em] text-primary">
+                {eyebrow}
+              </p>
+              <h1 className="mt-5 max-w-[12ch] font-display text-[clamp(3.5rem,5vw,5.5rem)] font-medium leading-[0.94] text-foreground">
+                {title}
+              </h1>
+              <p className="mt-6 max-w-md text-base leading-8 text-foreground/70 md:text-lg">{body}</p>
+              <div className="mt-8">
+                <Link
+                  href={primaryHref}
+                  className="inline-flex min-h-12 items-center justify-center gap-2 border border-primary bg-primary px-5 text-sm font-bold uppercase tracking-[0.18em] text-primary-foreground transition hover:bg-accent"
+                >
+                  {primaryLabel}
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="border-b border-primary/14 bg-background">
-      <div className="mx-auto grid min-h-[calc(100dvh-6rem)] max-w-7xl gap-10 px-5 py-14 md:grid-cols-[1.05fr_0.95fr] md:items-center lg:px-8">
+      <div className="mx-auto flex min-h-[68dvh] max-w-7xl items-center px-5 py-14 lg:px-8">
         <div>
           <p className="text-[0.68rem] font-bold uppercase tracking-[0.34em] text-primary">
             {eyebrow}
@@ -47,20 +93,6 @@ export function Hero({
                 {secondaryLabel}
               </Link>
             ) : null}
-          </div>
-        </div>
-        <div className="relative">
-          <div className="relative aspect-[4/5] overflow-hidden border border-primary/20 bg-surface">
-            <Image
-              src={brand.profileImage}
-              alt="Espaco reservado para fotografia real de Mariana Videira"
-              fill
-              priority
-              className="object-cover"
-            />
-          </div>
-          <div className="mt-3 border-l border-primary/70 pl-4 text-sm leading-6 text-foreground/58">
-            Placeholder identificado. Substituir por fotografia real fornecida.
           </div>
         </div>
       </div>

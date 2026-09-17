@@ -4,6 +4,32 @@ import { buildContactSummaries, searchContactSummaries } from "./contact-search"
 import { createMockCrmRepository } from "./mock-repository";
 
 describe("mock CRM repository", () => {
+  const manualBase = {
+    contactId: null,
+    contact: {
+      name: "Manual Silva",
+      phone: "912 222 333",
+      email: "manual@example.test",
+    },
+    opportunity: {
+      type: "seller" as const,
+      sourceId: "30000000-0000-4000-8000-000000000004",
+      temperature: "morna" as const,
+      assignedTo: null,
+      location: "Montijo",
+      propertyType: "Apartamento",
+      sellerSituation: "Estou a preparar a venda",
+      timeframe: "1 a 3 meses",
+      financingStatus: null,
+      currentPropertyToSell: null,
+      propertyAlreadyListed: false,
+      budgetMin: null,
+      budgetMax: null,
+    },
+    nextTask: null,
+    note: null,
+  };
+
   it("classifies the Today queue in priority order without duplicated opportunities", async () => {
     const repository = createMockCrmRepository();
     const groups = await repository.getTodayQueue();
@@ -342,5 +368,163 @@ describe("mock CRM repository", () => {
 
     expect(ana?.opportunities.length).toBeGreaterThan(1);
     expect(searchContactSummaries(contacts, "ana").some((contact) => contact.id === ana?.id)).toBe(true);
+  });
+
+  it("creates a manual seller opportunity with created_by and assigned_to as current user", async () => {
+    const repository = createMockCrmRepository();
+    const result = await repository.createManualOpportunity({
+      ...manualBase,
+      note: "Chegou por chamada direta.",
+    });
+
+    expect(result.opportunity.type).toBe("seller");
+    expect(result.opportunity.status).toBe("new");
+    expect(result.opportunity.stage).toBe("nova_lead");
+    expect(result.opportunity.createdBy).toBe("10000000-0000-4000-8000-000000000001");
+    expect(result.opportunity.assignedTo).toBe("10000000-0000-4000-8000-000000000001");
+
+    const activities = await repository.getActivities(result.opportunity.id);
+    expect(activities.some((activity) => activity.title === "Oportunidade criada manualmente")).toBe(true);
+    expect(activities.some((activity) => activity.title === "Nota inicial")).toBe(true);
+  });
+
+  it("creates a manual buyer opportunity", async () => {
+    const repository = createMockCrmRepository();
+    const result = await repository.createManualOpportunity({
+      ...manualBase,
+      contact: { name: "Comprador Manual", phone: "913 222 333", email: "" },
+      opportunity: {
+        ...manualBase.opportunity,
+        type: "buyer",
+        location: "Alcochete",
+        propertyType: "T3",
+        budgetMin: 250000,
+        budgetMax: 350000,
+        financingStatus: "Pre-aprovado",
+        currentPropertyToSell: false,
+        propertyAlreadyListed: null,
+      },
+    });
+
+    expect(result.opportunity.type).toBe("buyer");
+    expect(result.opportunity.budgetMin).toBe(250000);
+    expect(result.opportunity.budgetMax).toBe(350000);
+  });
+
+  it("deduplicates manual creation by phone first", async () => {
+    const repository = createMockCrmRepository();
+    const first = await repository.createManualOpportunity(manualBase);
+    const second = await repository.createManualOpportunity({
+      ...manualBase,
+      contact: {
+        name: "Outro Nome",
+        phone: "+351 912 222 333",
+        email: "outro@example.test",
+      },
+    });
+
+    expect(second.contact.id).toBe(first.contact.id);
+    expect(second.opportunity.id).not.toBe(first.opportunity.id);
+  });
+
+  it("deduplicates manual creation by email fallback", async () => {
+    const repository = createMockCrmRepository();
+    const first = await repository.createManualOpportunity({
+      ...manualBase,
+      contact: { name: "Email Manual Um", phone: "914 222 333", email: "MANUAL-FALLBACK@example.test" },
+    });
+    const second = await repository.createManualOpportunity({
+      ...manualBase,
+      contact: { name: "Email Manual Dois", phone: "915 222 333", email: "manual-fallback@example.test" },
+    });
+
+    expect(second.contact.id).toBe(first.contact.id);
+  });
+
+  it("never deduplicates manual creation by name", async () => {
+    const repository = createMockCrmRepository();
+    const first = await repository.createManualOpportunity({
+      ...manualBase,
+      contact: { name: "Mesmo Manual", phone: "916 222 333", email: "" },
+    });
+    const second = await repository.createManualOpportunity({
+      ...manualBase,
+      contact: { name: "Mesmo Manual", phone: "917 222 333", email: "" },
+    });
+
+    expect(second.contact.id).not.toBe(first.contact.id);
+  });
+
+  it("allows an existing contact to receive a new manual opportunity", async () => {
+    const repository = createMockCrmRepository();
+    const contact = (await repository.getContacts())[0];
+    const before = (await repository.getOpportunities()).filter(
+      (opportunity) => opportunity.contactId === contact.id,
+    ).length;
+    const result = await repository.createManualOpportunity({
+      ...manualBase,
+      contactId: contact.id,
+      contact: { name: null, phone: null, email: null },
+    });
+    const after = (await repository.getOpportunities()).filter(
+      (opportunity) => opportunity.contactId === contact.id,
+    ).length;
+
+    expect(result.contact.id).toBe(contact.id);
+    expect(after).toBe(before + 1);
+  });
+
+  it("creates task and recalculates next_action_at for manual opportunities", async () => {
+    const repository = createMockCrmRepository();
+    const dueAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const result = await repository.createManualOpportunity({
+      ...manualBase,
+      contact: { name: "Task Manual", phone: "918 222 333", email: "" },
+      nextTask: {
+        type: "call",
+        dueAt,
+        title: "Ligar para qualificar",
+      },
+    });
+
+    expect(result.task).not.toBeNull();
+    expect((await repository.getOpportunity(result.opportunity.id))?.nextActionAt).toBe(dueAt);
+  });
+
+  it("rejects manual buyer budget when minimum exceeds maximum", async () => {
+    const repository = createMockCrmRepository();
+
+    await expect(
+      repository.createManualOpportunity({
+        ...manualBase,
+        opportunity: {
+          ...manualBase.opportunity,
+          type: "buyer",
+          budgetMin: 400000,
+          budgetMax: 300000,
+        },
+      }),
+    ).rejects.toThrow("orcamento maximo");
+  });
+
+  it("rejects manual creation for unauthenticated or inactive users", async () => {
+    await expect(
+      createMockCrmRepository(undefined, { currentProfileId: null }).createManualOpportunity(manualBase),
+    ).rejects.toThrow("Not allowed");
+
+    await expect(
+      createMockCrmRepository(undefined, { currentProfileIsActive: false }).createManualOpportunity(manualBase),
+    ).rejects.toThrow("Not allowed");
+  });
+
+  it("rejects invalid manual payloads", async () => {
+    const repository = createMockCrmRepository();
+
+    await expect(
+      repository.createManualOpportunity({
+        ...manualBase,
+        contact: { name: "", phone: "", email: "" },
+      }),
+    ).rejects.toThrow("nome");
   });
 });

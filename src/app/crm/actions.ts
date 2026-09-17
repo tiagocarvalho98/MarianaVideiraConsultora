@@ -1,8 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { ZodError } from "zod";
 import { getSupabaseSessionProfile } from "@/lib/auth/server-auth";
 import { getCrmRepository } from "@/lib/crm";
+import { manualOpportunitySchema } from "@/lib/crm/manual-opportunity";
 import type { LeadTemperature, TaskPriority } from "@/types/crm";
 
 function value(formData: FormData, key: string) {
@@ -13,6 +16,16 @@ function value(formData: FormData, key: string) {
 function optionalValue(formData: FormData, key: string) {
   const entry = value(formData, key);
   return entry.length > 0 ? entry : null;
+}
+
+function optionalNumberValue(formData: FormData, key: string) {
+  const entry = optionalValue(formData, key);
+  return entry ? Number(entry) : null;
+}
+
+function optionalBooleanValue(formData: FormData, key: string) {
+  const entry = optionalValue(formData, key);
+  return entry ?? null;
 }
 
 function revalidateCrmPaths(opportunityId?: string, contactId?: string) {
@@ -156,4 +169,74 @@ export async function markOpportunityLostAction(formData: FormData) {
   );
 
   revalidateCrmPaths(opportunityId, updated.contactId);
+}
+
+export type ManualOpportunityActionState = {
+  error: string | null;
+};
+
+export async function createManualOpportunityAction(
+  _state: ManualOpportunityActionState,
+  formData: FormData,
+): Promise<ManualOpportunityActionState> {
+  let createdOpportunityId: string | null = null;
+
+  try {
+    const hasNextTask = value(formData, "hasNextTask") === "on";
+    const parsed = manualOpportunitySchema.parse({
+      contactId: optionalValue(formData, "contactId"),
+      contact: {
+        name: optionalValue(formData, "name"),
+        phone: optionalValue(formData, "phone"),
+        email: optionalValue(formData, "email"),
+      },
+      opportunity: {
+        type: value(formData, "type"),
+        sourceId: value(formData, "sourceId"),
+        temperature: value(formData, "temperature") || "morna",
+        assignedTo: optionalValue(formData, "assignedTo"),
+        location: optionalValue(formData, "location"),
+        propertyType: optionalValue(formData, "propertyType"),
+        sellerSituation: optionalValue(formData, "sellerSituation"),
+        timeframe: optionalValue(formData, "timeframe"),
+        financingStatus: optionalValue(formData, "financingStatus"),
+        currentPropertyToSell: optionalBooleanValue(formData, "currentPropertyToSell"),
+        propertyAlreadyListed: optionalBooleanValue(formData, "propertyAlreadyListed"),
+        budgetMin: optionalNumberValue(formData, "budgetMin"),
+        budgetMax: optionalNumberValue(formData, "budgetMax"),
+      },
+      nextTask: hasNextTask
+        ? {
+            type: value(formData, "nextTaskType"),
+            dueAt: value(formData, "nextTaskDueAt"),
+            title: value(formData, "nextTaskTitle"),
+          }
+        : null,
+      note: optionalValue(formData, "note"),
+    });
+
+    const result = await getCrmRepository().createManualOpportunity(parsed);
+
+    revalidateCrmPaths(result.opportunity.id, result.contact.id);
+    createdOpportunityId = result.opportunity.id;
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return {
+        error: error.issues[0]?.message ?? "Dados invalidos.",
+      };
+    }
+
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel criar a oportunidade.",
+    };
+  }
+
+  if (createdOpportunityId) {
+    redirect(`/crm/oportunidades/${createdOpportunityId}?created=1`);
+  }
+
+  return { error: "Nao foi possivel criar a oportunidade." };
 }

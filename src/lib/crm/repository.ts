@@ -3,6 +3,7 @@ import type {
   LeadIntakeResult,
   SellerLeadInput,
 } from "./intake";
+import type { ManualOpportunityInput, ManualOpportunityResult } from "./manual-opportunity";
 
 import type {
   Activity,
@@ -78,6 +79,7 @@ export type CrmRepository = {
   getTodayPriorityGroups(): Promise<TodayPriorityGroup[]>;
   submitSellerLead(input: SellerLeadInput): Promise<LeadIntakeResult>;
   submitBuyerLead(input: BuyerLeadInput): Promise<LeadIntakeResult>;
+  createManualOpportunity(input: ManualOpportunityInput): Promise<ManualOpportunityResult>;
   getActivities(opportunityId: string): Promise<Activity[]>;
   getTasks(filters?: TaskFilters): Promise<Task[]>;
   getLeadSources(): Promise<LeadSource[]>;

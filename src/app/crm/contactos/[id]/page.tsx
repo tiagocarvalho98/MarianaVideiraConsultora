@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { OpportunityCard } from "@/components/crm/OpportunityCard";
 import { PageIntro } from "@/components/crm/PageIntro";
+import { ManualOpportunityDialog } from "@/components/crm/ManualOpportunityDialog";
+import { getSupabaseSessionProfile } from "@/lib/auth/server-auth";
 import { getCrmRepository } from "@/lib/crm";
 import { formatContactName, formatDateTime } from "@/lib/crm/format";
 
@@ -12,12 +14,15 @@ export default async function ContactDetailPage({
 }) {
   const { id } = await params;
   const repository = getCrmRepository();
-  const [contact, opportunities] = await Promise.all([
+  const [contact, opportunities, profiles, sources, currentProfile] = await Promise.all([
     repository.getContact(id),
     repository.getOpportunities(),
+    repository.getProfiles(),
+    repository.getLeadSources(),
+    getSupabaseSessionProfile(),
   ]);
 
-  if (!contact) {
+  if (!contact || !currentProfile) {
     notFound();
   }
 
@@ -31,11 +36,21 @@ export default async function ContactDetailPage({
 
   return (
     <div className="space-y-6">
-      <PageIntro
-        eyebrow="Ficha de contacto"
-        title={formatContactName(contact.firstName, contact.lastName)}
-        description="Pessoa e historico comercial. Contacto e oportunidade permanecem conceitos separados."
-      />
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <PageIntro
+          eyebrow="Ficha de contacto"
+          title={formatContactName(contact.firstName, contact.lastName)}
+          description="Pessoa e historico comercial. Contacto e oportunidade permanecem conceitos separados."
+        />
+        <ManualOpportunityDialog
+          profiles={profiles}
+          sources={sources}
+          contacts={[]}
+          currentProfileId={currentProfile.id}
+          preselectedContact={contact}
+          buttonLabel="Nova oportunidade"
+        />
+      </div>
 
       <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
         <div className="grid gap-4 md:grid-cols-4">

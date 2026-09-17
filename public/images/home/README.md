@@ -11,19 +11,19 @@ Recommended files:
   - Recommended: 3200px wide.
   - Subject: premium contemporary apartment/interior with terrace, large windows, warm light, plausible Tejo/Montijo/Alcochete context.
 
-- `sell.jpg`
-  - Missing final asset.
+- `/Assets/vender.png`
+  - Current: approved seller image.
   - Aspect ratio: 4:5, 3:4 or 16:10.
   - Minimum: 1800px wide.
   - Recommended: 2400px wide.
-  - Subject: premium interior or apartment detail suitable for seller positioning.
+  - Subject: consultant and owner relationship inside a premium property context.
 
-- `buy.jpg`
-  - Missing final asset.
+- `/Assets/Comprar.png`
+  - Current: approved buyer image.
   - Aspect ratio: 4:5, 3:4 or 16:10.
   - Minimum: 1800px wide.
   - Recommended: 2400px wide.
-  - Subject: balcony, terrace, contemporary apartment or warm residential view suitable for buyer positioning.
+  - Subject: family entering a premium residential property context.
 
 - `/Assets/mariana-home.png`
   - Current: approved Mariana homepage cutout photo.
@@ -35,6 +35,8 @@ Recommended files:
 Current assets available outside this folder:
 
 - `/Assets/mariana-home.png`: homepage profile image.
+- `/Assets/vender.png`: homepage Vender and `/vender` hero image.
+- `/Assets/Comprar.png`: homepage Comprar and `/comprar` hero image.
 - `/Assets/mariana-about.png`: reserved for `/sobre`.
 - `/Assets/mariana-contact.jpeg`: reserved for `/contacto` or a future appropriate context.
 - `/Assets/mariana-remax.png`: reserved for `/vender` or a future institutional context.

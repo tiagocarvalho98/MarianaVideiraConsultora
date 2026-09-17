@@ -16,10 +16,13 @@ import {
 
 export default async function OpportunityDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ created?: string }>;
 }) {
   const { id } = await params;
+  const { created } = await searchParams;
   const repository = getCrmRepository();
   const [opportunity, profiles] = await Promise.all([
     repository.getOpportunity(id),
@@ -42,6 +45,12 @@ export default async function OpportunityDetailPage({
         title={name}
         description="Contexto comercial, proxima acao e historico auditavel desta oportunidade."
       />
+
+      {created === "1" ? (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-bold text-emerald-800">
+          Oportunidade criada.
+        </div>
+      ) : null}
 
       <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">

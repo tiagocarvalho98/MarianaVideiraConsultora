@@ -22,6 +22,11 @@ import {
   type SellerLeadInput,
 } from "./intake";
 import {
+  mapManualOpportunityForRpc,
+  type ManualOpportunityInput,
+  type ManualOpportunityResult,
+} from "./manual-opportunity";
+import {
   sortByDateAsc,
   type AddActivityInput,
   type CreateTaskInput,
@@ -47,6 +52,12 @@ type PublicIntakeRpcResult = {
   formSubmissionId: string;
 };
 
+type ManualOpportunityRpcResult = {
+  contactId: string;
+  opportunityId: string;
+  taskId: string | null;
+};
+
 function jsonToRecord(value: Json): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -58,6 +69,10 @@ function recordToJson(value: Record<string, unknown>): Json {
 }
 
 function intakeToJson(value: MappedLeadIntake): Json {
+  return value as unknown as Json;
+}
+
+function manualOpportunityToJson(value: ReturnType<typeof mapManualOpportunityForRpc>): Json {
   return value as unknown as Json;
 }
 
@@ -76,6 +91,17 @@ function parsePublicIntakeResult(value: Json): PublicIntakeRpcResult {
     contactId: assertStringId(result.contactId, "contactId"),
     opportunityId: assertStringId(result.opportunityId, "opportunityId"),
     formSubmissionId: assertStringId(result.formSubmissionId, "formSubmissionId"),
+  };
+}
+
+function parseManualOpportunityResult(value: Json): ManualOpportunityRpcResult {
+  const result = jsonToRecord(value);
+  const taskId = result.taskId;
+
+  return {
+    contactId: assertStringId(result.contactId, "contactId"),
+    opportunityId: assertStringId(result.opportunityId, "opportunityId"),
+    taskId: typeof taskId === "string" && taskId.length > 0 ? taskId : null,
   };
 }
 
@@ -526,6 +552,36 @@ async function submitPublicLeadIntake(mapped: MappedLeadIntake): Promise<LeadInt
   };
 }
 
+async function createManualOpportunityInSupabase(
+  input: ManualOpportunityInput,
+): Promise<ManualOpportunityResult> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("create_manual_opportunity", {
+    _payload: manualOpportunityToJson(mapManualOpportunityForRpc(input)),
+  });
+
+  if (error) throw error;
+
+  const ids = parseManualOpportunityResult(data);
+  const [contactResult, opportunityResult, taskResult] = await Promise.all([
+    supabase.from("contacts").select("*").eq("id", ids.contactId).single(),
+    supabase.from("opportunities").select("*").eq("id", ids.opportunityId).single(),
+    ids.taskId
+      ? supabase.from("tasks").select("*").eq("id", ids.taskId).single()
+      : Promise.resolve({ data: null, error: null }),
+  ]);
+
+  if (contactResult.error) throw contactResult.error;
+  if (opportunityResult.error) throw opportunityResult.error;
+  if (taskResult.error) throw taskResult.error;
+
+  return {
+    contact: toContact(contactResult.data),
+    opportunity: toOpportunity(opportunityResult.data),
+    task: taskResult.data ? toTask(taskResult.data) : null,
+  };
+}
+
 export function createSupabaseRepository(): CrmRepository {
   return {
     async getCurrentUser() {
@@ -569,6 +625,9 @@ export function createSupabaseRepository(): CrmRepository {
     },
     async submitBuyerLead(input: BuyerLeadInput) {
       return submitPublicLeadIntake(mapBuyerLeadFormToIntake(input));
+    },
+    async createManualOpportunity(input: ManualOpportunityInput) {
+      return createManualOpportunityInSupabase(input);
     },
     async getActivities(opportunityId) {
       return (await allRelations()).activities.filter(

@@ -37,8 +37,8 @@ export const sellerFaq = [
     answer: "Sim, desde que a conversa ajude a avaliar posicionamento, procura recebida e proximos passos.",
   },
   {
-    question: "O formulario envia dados para o CRM?",
-    answer: "Ainda nao. Nesta fase valida os dados visualmente; a integracao sera ligada depois.",
+    question: "O que acontece depois de enviar o formulario?",
+    answer: "A informacao enviada ajuda a preparar um primeiro contacto com mais contexto sobre o imovel e o momento da venda.",
   },
 ] as const;
 
@@ -52,8 +52,8 @@ export const buyerFaq = [
     answer: "Nao obrigatoriamente, mas saber o estado do financiamento ajuda a filtrar melhor e evitar perda de tempo.",
   },
   {
-    question: "O formulario envia dados para o CRM?",
-    answer: "Ainda nao. Nesta fase valida os dados visualmente; a integracao sera ligada depois.",
+    question: "O que acontece depois de enviar o formulario?",
+    answer: "A informacao enviada ajuda a preparar um primeiro contacto com mais contexto sobre a procura e o momento da compra.",
   },
 ] as const;
 

@@ -404,6 +404,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      create_manual_opportunity: { Args: { _payload: Json }; Returns: Json }
       mark_opportunity_lost: {
         Args: { p_notes?: string; p_opportunity_id: string; p_reason: string }
         Returns: {

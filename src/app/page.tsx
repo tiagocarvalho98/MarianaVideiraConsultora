@@ -17,17 +17,31 @@ const heroImage = {
 } as const;
 
 const marianaHomeImage = {
-  src: "/Assets/mariana-home.png",
+  src: "/Assets/mariana-home-cutout-premium.png",
   alt: "Mariana Videira, consultora imobiliária",
 } as const;
 
-const visualEntries = [
+type VisualEntry = {
+  href: string;
+  place: string;
+  title: string;
+  body: string;
+  slot: "sell" | "buy";
+  image: string | null;
+  imageAlt: string | null;
+  objectPosition: string;
+};
+
+const visualEntries: readonly VisualEntry[] = [
   {
     href: "/vender",
     place: "Montijo",
     title: "Vender",
     body: "Valorize o seu imovel",
     slot: "sell",
+    image: "/Assets/vender.png",
+    imageAlt: "Consultora e proprietário numa sala contemporânea com vista exterior.",
+    objectPosition: "center center",
   },
   {
     href: "/comprar",
@@ -35,6 +49,9 @@ const visualEntries = [
     title: "Comprar",
     body: "Encontre o seu proximo lar",
     slot: "buy",
+    image: "/Assets/Comprar.png",
+    imageAlt: "Família à entrada de uma moradia contemporânea ao pôr do sol.",
+    objectPosition: "center center",
   },
 ] as const;
 
@@ -139,15 +156,26 @@ function PendingPhotoSurface({ slot }: { slot: "sell" | "buy" }) {
 
 function VisualEntrySection() {
   return (
-    <section className="grid min-h-[55dvh] border-y border-primary/10 bg-[#020f1c] lg:min-h-[68dvh] lg:grid-cols-2">
+    <section className="grid border-y border-primary/10 bg-[#020f1c] lg:h-[clamp(42rem,72vh,50rem)] lg:grid-cols-2">
       {visualEntries.map((entry) => (
         <Link
           key={entry.href}
           href={entry.href}
-          className="group relative min-h-[30rem] overflow-hidden lg:min-h-[68dvh]"
+          className="group relative min-h-[35rem] overflow-hidden lg:min-h-0"
         >
-          <PendingPhotoSurface slot={entry.slot} />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/36 to-background/10 transition duration-300 group-hover:from-background/82" />
+          {entry.image ? (
+            <Image
+              src={entry.image}
+              alt={entry.imageAlt ?? ""}
+              fill
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              className="object-cover transition duration-500 group-hover:scale-[1.02]"
+              style={{ objectPosition: entry.objectPosition }}
+            />
+          ) : (
+            <PendingPhotoSurface slot={entry.slot} />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-background/88 via-background/42 to-background/16 transition duration-300 group-hover:from-background/80" />
           <div className="absolute inset-x-0 bottom-0 p-6 md:p-10">
             <p className="text-[0.65rem] font-bold uppercase tracking-[0.38em] text-primary">
               {entry.place}
@@ -174,26 +202,17 @@ function VisualEntrySection() {
 function MarianaSection() {
   return (
     <section className="luxury-section overflow-hidden border-b border-primary/10">
-      <div className="mx-auto grid max-w-7xl items-end gap-10 px-5 pt-16 lg:grid-cols-[0.44fr_0.56fr] lg:gap-14 lg:px-8 lg:pt-24">
-        <div className="relative order-2 min-h-[29rem] md:min-h-[38rem] lg:order-1 lg:min-h-[43rem]">
-          <div
-            className="absolute bottom-0 left-[8%] h-[82%] w-[72%] bg-primary/[0.08]"
-            aria-hidden="true"
-          />
-          <div
-            className="absolute bottom-8 left-0 h-px w-3/5 bg-primary/40"
-            aria-hidden="true"
-          />
-          <Image
-            src={marianaHomeImage.src}
-            alt={marianaHomeImage.alt}
-            fill
-            sizes="(min-width: 1024px) 42vw, (min-width: 768px) 58vw, 92vw"
-            className="object-contain object-bottom"
-          />
-        </div>
+      <div className="relative mx-auto max-w-7xl px-5 pt-14 md:pt-16 lg:min-h-[clamp(48rem,82vh,58rem)] lg:px-8">
+        <Image
+          src={marianaHomeImage.src}
+          alt={marianaHomeImage.alt}
+          width={1316}
+          height={2400}
+          sizes="(min-width: 1280px) 44rem, (min-width: 1024px) 40rem, 108vw"
+          className="pointer-events-none relative left-1/2 z-0 h-auto w-[min(108vw,35rem)] max-w-none -translate-x-1/2 lg:absolute lg:bottom-0 lg:left-0 lg:h-[clamp(43rem,76vh,55rem)] lg:w-auto lg:translate-x-0"
+        />
 
-        <div className="order-1 pb-4 lg:order-2 lg:pb-28">
+        <div className="relative z-10 pt-8 pb-16 lg:ml-auto lg:max-w-[43rem] lg:pt-32 lg:pb-24 xl:pr-8">
           <p className="text-[0.68rem] font-bold uppercase tracking-[0.38em] text-primary">
             SOBRE
           </p>
