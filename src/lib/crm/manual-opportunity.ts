@@ -35,13 +35,14 @@ const optionalBoolean = z
     return null;
   });
 
-export const manualTaskTypeSchema = z.enum(["call", "meeting", "follow_up", "other"]);
+export const manualTaskTypeSchema = z.enum(["call", "meeting", "visit", "follow_up", "other"]);
 
 export type ManualTaskType = z.infer<typeof manualTaskTypeSchema>;
 
 export const manualTaskTypes: Array<{ id: ManualTaskType; label: string }> = [
   { id: "call", label: "Telefonema" },
   { id: "meeting", label: "Reuniao" },
+  { id: "visit", label: "Visitas" },
   { id: "follow_up", label: "Follow-up" },
   { id: "other", label: "Outro" },
 ];
@@ -61,6 +62,7 @@ export const manualOpportunitySchema = z
       assignedTo: optionalTrimmedString(80),
       location: optionalTrimmedString(240),
       propertyType: optionalTrimmedString(120),
+      typology: optionalTrimmedString(80),
       sellerSituation: optionalTrimmedString(180),
       timeframe: optionalTrimmedString(120),
       financingStatus: optionalTrimmedString(120),
@@ -196,6 +198,7 @@ export function mapManualOpportunityForRpc(input: ManualOpportunityInput) {
       assignedTo: input.opportunity.assignedTo,
       location: input.opportunity.location,
       propertyType: input.opportunity.propertyType,
+      typology: input.opportunity.typology,
       sellerSituation: input.opportunity.sellerSituation,
       timeframe: input.opportunity.timeframe,
       financingStatus: input.opportunity.financingStatus,

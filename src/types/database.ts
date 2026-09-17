@@ -219,6 +219,7 @@ export type Database = {
           next_action_at: string | null
           property_already_listed: boolean | null
           property_type: string | null
+          typology: string | null
           source_id: string | null
           stage: string
           status: Database["public"]["Enums"]["opportunity_status"]
@@ -245,6 +246,7 @@ export type Database = {
           next_action_at?: string | null
           property_already_listed?: boolean | null
           property_type?: string | null
+          typology?: string | null
           source_id?: string | null
           stage: string
           status?: Database["public"]["Enums"]["opportunity_status"]
@@ -271,6 +273,7 @@ export type Database = {
           next_action_at?: string | null
           property_already_listed?: boolean | null
           property_type?: string | null
+          typology?: string | null
           source_id?: string | null
           stage?: string
           status?: Database["public"]["Enums"]["opportunity_status"]
@@ -425,6 +428,7 @@ export type Database = {
           next_action_at: string | null
           property_already_listed: boolean | null
           property_type: string | null
+          typology: string | null
           source_id: string | null
           stage: string
           status: Database["public"]["Enums"]["opportunity_status"]
@@ -461,6 +465,7 @@ export type Database = {
           next_action_at: string | null
           property_already_listed: boolean | null
           property_type: string | null
+          typology: string | null
           source_id: string | null
           stage: string
           status: Database["public"]["Enums"]["opportunity_status"]

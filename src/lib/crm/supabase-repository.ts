@@ -155,6 +155,7 @@ function toOpportunity(row: OpportunityRow): Opportunity {
     budgetMin: row.budget_min,
     budgetMax: row.budget_max,
     propertyType: row.property_type,
+    typology: row.typology,
     timeframe: row.timeframe,
     financingStatus: row.financing_status,
     currentPropertyToSell: row.current_property_to_sell,

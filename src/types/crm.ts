@@ -50,6 +50,7 @@ export type Opportunity = {
   budgetMin: number | null;
   budgetMax: number | null;
   propertyType: string | null;
+  typology: string | null;
   timeframe: string | null;
   financingStatus: string | null;
   currentPropertyToSell: boolean | null;

@@ -12,7 +12,8 @@ import {
 const marianaId = "10000000-0000-4000-8000-000000000001";
 const tiagoId = "10000000-0000-4000-8000-000000000002";
 const zones = ["Montijo", "Alcochete", "Setubal", "Palmela", "Barreiro", "Moita"];
-const propertyTypes = ["T1", "T2", "T3", "Moradia", "Apartamento T3", "Terreno"];
+const propertyTypes = ["Apartamento", "Moradia", "Terreno", "Predio", "Outro"];
+const typologies = ["T1", "T2", "T3", "T4+", "T5+", "Outro"];
 
 type OpportunitySpec = {
   contactId?: string;
@@ -83,6 +84,7 @@ export const mockOpportunities: Opportunity[] = specs.map((spec, index) => {
     budgetMin: isBuyer ? 170000 + index * 7000 : null,
     budgetMax: isBuyer ? 230000 + index * 9000 : null,
     propertyType: propertyTypes[index % propertyTypes.length],
+    typology: isBuyer ? typologies[index % typologies.length] : null,
     timeframe: index % 4 === 0 ? "Imediato" : index % 4 === 1 ? "1 a 3 meses" : index % 4 === 2 ? "3 a 6 meses" : "6 a 12 meses",
     financingStatus: isBuyer ? (index % 3 === 0 ? "aprovado" : index % 3 === 1 ? "pre_aprovado" : "ainda_nao_tratado") : null,
     currentPropertyToSell: isBuyer ? index % 5 === 0 : null,

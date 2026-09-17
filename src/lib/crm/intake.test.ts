@@ -81,6 +81,8 @@ describe("public lead intake mapping", () => {
     expect(mapped.contact.email).toBeNull();
     expect(mapped.opportunity.type).toBe("buyer");
     expect(mapped.opportunity.location).toBe("Montijo, Alcochete");
+    expect(mapped.opportunity.propertyType).toBeNull();
+    expect(mapped.opportunity.typology).toBe("T3");
     expect(mapped.opportunity.budgetMin).toBe(250000);
     expect(mapped.opportunity.budgetMax).toBe(350000);
     expect(mapped.opportunity.currentPropertyToSell).toBe(true);

@@ -18,6 +18,7 @@ describe("mock CRM repository", () => {
       assignedTo: null,
       location: "Montijo",
       propertyType: "Apartamento",
+      typology: null,
       sellerSituation: "Estou a preparar a venda",
       timeframe: "1 a 3 meses",
       financingStatus: null,
@@ -397,7 +398,8 @@ describe("mock CRM repository", () => {
         ...manualBase.opportunity,
         type: "buyer",
         location: "Alcochete",
-        propertyType: "T3",
+        propertyType: "Apartamento",
+        typology: "T3",
         budgetMin: 250000,
         budgetMax: 350000,
         financingStatus: "Pre-aprovado",
@@ -407,6 +409,8 @@ describe("mock CRM repository", () => {
     });
 
     expect(result.opportunity.type).toBe("buyer");
+    expect(result.opportunity.propertyType).toBe("Apartamento");
+    expect(result.opportunity.typology).toBe("T3");
     expect(result.opportunity.budgetMin).toBe(250000);
     expect(result.opportunity.budgetMax).toBe(350000);
   });

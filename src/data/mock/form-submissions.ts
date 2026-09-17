@@ -45,6 +45,7 @@ export const mockFormSubmissions: FormSubmission[] = mockOpportunities.map(
       formType: opportunity.type,
       location: opportunity.location,
       propertyType: opportunity.propertyType,
+      typology: opportunity.typology,
       timeframe: opportunity.timeframe,
     },
     createdAt: opportunity.createdAt,

@@ -183,6 +183,9 @@ export async function createManualOpportunityAction(
 
   try {
     const hasNextTask = value(formData, "hasNextTask") === "on";
+    const opportunityType = value(formData, "type");
+    const buyerPropertyType = optionalValue(formData, "buyerPropertyType");
+    const buyerTypology = optionalValue(formData, "buyerTypology");
     const parsed = manualOpportunitySchema.parse({
       contactId: optionalValue(formData, "contactId"),
       contact: {
@@ -191,12 +194,16 @@ export async function createManualOpportunityAction(
         email: optionalValue(formData, "email"),
       },
       opportunity: {
-        type: value(formData, "type"),
+        type: opportunityType,
         sourceId: value(formData, "sourceId"),
         temperature: value(formData, "temperature") || "morna",
         assignedTo: optionalValue(formData, "assignedTo"),
         location: optionalValue(formData, "location"),
-        propertyType: optionalValue(formData, "propertyType"),
+        propertyType:
+          opportunityType === "buyer"
+            ? buyerPropertyType
+            : optionalValue(formData, "propertyType"),
+        typology: opportunityType === "buyer" ? buyerTypology : null,
         sellerSituation: optionalValue(formData, "sellerSituation"),
         timeframe: optionalValue(formData, "timeframe"),
         financingStatus: optionalValue(formData, "financingStatus"),

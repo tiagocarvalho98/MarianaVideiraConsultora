@@ -312,8 +312,14 @@ export function ManualOpportunityDialog({
                         <input name="location" className="min-h-11 rounded-xl border border-border px-3" />
                       </label>
                       <label className="grid gap-1 text-sm font-semibold text-stone-700">
+                        Tipo de imovel
+                        <select name="buyerPropertyType" className="min-h-11 rounded-xl border border-border px-3">
+                          <OptionList values={propertyTypeOptions} />
+                        </select>
+                      </label>
+                      <label className="grid gap-1 text-sm font-semibold text-stone-700">
                         Tipologia
-                        <select name="propertyType" className="min-h-11 rounded-xl border border-border px-3">
+                        <select name="buyerTypology" className="min-h-11 rounded-xl border border-border px-3">
                           <OptionList values={typologyOptions} />
                         </select>
                       </label>

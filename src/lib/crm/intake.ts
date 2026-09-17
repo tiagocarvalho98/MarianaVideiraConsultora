@@ -41,6 +41,7 @@ export type LeadOpportunityDraft = Pick<
   | "budgetMin"
   | "budgetMax"
   | "propertyType"
+  | "typology"
   | "timeframe"
   | "financingStatus"
   | "currentPropertyToSell"
@@ -229,6 +230,7 @@ export function mapSellerLeadFormToIntake(input: SellerLeadInput): MappedLeadInt
       budgetMin: null,
       budgetMax: null,
       propertyType: input.propertyType.trim(),
+      typology: null,
       timeframe: input.sellingTimeframe.trim(),
       financingStatus: null,
       currentPropertyToSell: null,
@@ -249,7 +251,8 @@ export function mapBuyerLeadFormToIntake(input: BuyerLeadInput): MappedLeadIntak
       location: input.desiredZones.trim(),
       budgetMin,
       budgetMax,
-      propertyType: input.typology.trim(),
+      propertyType: null,
+      typology: input.typology.trim(),
       timeframe: input.buyingTimeframe.trim(),
       financingStatus: input.financingStatus.trim(),
       currentPropertyToSell: parseBooleanChoice(input.hasPropertyToSell),

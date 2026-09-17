@@ -459,6 +459,7 @@ export function createMockCrmRepository(
       budgetMin: parsed.opportunity.budgetMin,
       budgetMax: parsed.opportunity.budgetMax,
       propertyType: parsed.opportunity.propertyType,
+      typology: parsed.opportunity.typology,
       timeframe: parsed.opportunity.timeframe,
       financingStatus: parsed.opportunity.financingStatus,
       currentPropertyToSell: parsed.opportunity.currentPropertyToSell,
