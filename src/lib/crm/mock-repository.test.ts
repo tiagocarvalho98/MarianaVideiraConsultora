@@ -209,6 +209,46 @@ describe("mock CRM repository", () => {
     expect((await repository.getOpportunity(opportunityId))?.nextActionAt).toBeNull();
   });
 
+  it("keeps multiple tasks on one opportunity and supports task editing", async () => {
+    const repository = createMockCrmRepository();
+    const opportunityId = "40000000-0000-4000-8000-000000000001";
+    const firstDueAt = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString();
+    const secondDueAt = new Date(Date.now() + 96 * 60 * 60 * 1000).toISOString();
+    const editedDueAt = new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString();
+
+    const first = await repository.createTask({
+      opportunityId,
+      assignedTo: "10000000-0000-4000-8000-000000000001",
+      title: "Enviar lista de imoveis",
+      dueAt: firstDueAt,
+      priority: "normal",
+    });
+    const second = await repository.createTask({
+      opportunityId,
+      assignedTo: "10000000-0000-4000-8000-000000000002",
+      title: "Marcar visita",
+      dueAt: secondDueAt,
+      priority: "high",
+    });
+
+    expect((await repository.getOpportunity(opportunityId))?.tasks.length).toBeGreaterThanOrEqual(2);
+
+    const updated = await repository.updateTask({
+      taskId: second.id,
+      assignedTo: "10000000-0000-4000-8000-000000000001",
+      title: "Marcar visita ao T3",
+      dueAt: editedDueAt,
+      priority: "urgent",
+    });
+
+    const opportunity = await repository.getOpportunity(opportunityId);
+
+    expect(updated.title).toBe("Marcar visita ao T3");
+    expect(opportunity?.nextActionAt).toBe(editedDueAt);
+    expect(opportunity?.nextTask?.id).toBe(second.id);
+    expect(opportunity?.tasks.some((task) => task.id === first.id)).toBe(true);
+  });
+
   it("creates seller intake as Contact, Opportunity, FormSubmission and Activities", async () => {
     const repository = createMockCrmRepository();
     const result = await repository.submitSellerLead({

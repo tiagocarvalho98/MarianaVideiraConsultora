@@ -132,6 +132,7 @@ export type OpportunityWithRelations = Opportunity & {
   createdByProfile: Profile | null;
   source: LeadSource | null;
   nextTask: Task | null;
+  tasks: Task[];
   activities: Activity[];
 };
 

@@ -15,13 +15,14 @@ import {
   completeTaskAction,
   createTaskAction,
   registerCallAction,
+  updateTaskAction,
 } from "@/app/crm/actions";
 import { taskPriorities } from "@/data/task-priorities";
 import { formatContactName, formatDateTime, formatRelativeTime } from "@/lib/crm/format";
 import { cn } from "@/lib/utils";
 import { OpportunityControls } from "./OpportunityControls";
 import { TemperatureBadge, TypeBadge } from "./Badges";
-import type { OpportunityWithRelations, Profile } from "@/types/crm";
+import type { OpportunityWithRelations, Profile, Task } from "@/types/crm";
 
 type PipelineOpportunityDialogProps = {
   opportunity: OpportunityWithRelations;
@@ -40,6 +41,7 @@ export function PipelineOpportunityDialog({
   profiles,
 }: PipelineOpportunityDialogProps) {
   const [open, setOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const name = formatContactName(
     opportunity.contact.firstName,
     opportunity.contact.lastName,
@@ -48,6 +50,7 @@ export function PipelineOpportunityDialog({
     .filter(Boolean)
     .join(" · ");
   const nextTask = opportunity.nextTask;
+  const selectedOrNextTask = selectedTask ?? nextTask;
   const isOverdue = Boolean(nextTask && new Date(nextTask.dueAt).getTime() < Date.now());
 
   return (
@@ -165,69 +168,130 @@ export function PipelineOpportunityDialog({
                 </div>
               </div>
 
-              <form action={createTaskAction} className="mt-4 grid gap-3 md:grid-cols-2">
-                <input type="hidden" name="opportunityId" value={opportunity.id} />
-                <label className="grid gap-1 text-sm font-semibold text-stone-300 md:col-span-2">
-                  Titulo
-                  <input
-                    required
-                    name="title"
-                    defaultValue={nextTask?.title ?? ""}
-                    className="min-h-11 rounded-xl border border-accent/20 bg-[#061a2b] px-3 text-sm text-stone-100"
-                  />
-                </label>
-                <label className="grid gap-1 text-sm font-semibold text-stone-300">
-                  Data
-                  <input
-                    required
-                    type="datetime-local"
-                    name="dueAt"
-                    defaultValue={toLocalDateTimeValue(nextTask?.dueAt ?? null)}
-                    className="min-h-11 rounded-xl border border-accent/20 bg-[#061a2b] px-3 text-sm text-stone-100"
-                  />
-                </label>
-                <label className="grid gap-1 text-sm font-semibold text-stone-300">
-                  Responsavel
-                  <select
-                    name="assignedTo"
-                    defaultValue={nextTask?.assignedTo ?? opportunity.assignedTo ?? ""}
-                    className="min-h-11 rounded-xl border border-accent/20 bg-[#061a2b] px-3 text-sm text-stone-100"
-                  >
-                    <option value="">Sem responsavel</option>
-                    {profiles.map((profile) => (
-                      <option key={profile.id} value={profile.id}>
-                        {profile.fullName}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="grid gap-1 text-sm font-semibold text-stone-300">
-                  Prioridade
-                  <select
-                    name="priority"
-                    defaultValue={nextTask?.priority ?? "normal"}
-                    className="min-h-11 rounded-xl border border-accent/20 bg-[#061a2b] px-3 text-sm text-stone-100"
-                  >
-                    {taskPriorities.map((priority) => (
-                      <option key={priority.id} value={priority.id}>
-                        {priority.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <div className="flex items-end gap-2">
-                  <button className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl bg-accent px-4 text-sm font-bold text-primary-foreground transition hover:bg-primary">
-                    Guardar tarefa
-                  </button>
-                  <Link
-                    href={`/crm/oportunidades/${opportunity.id}`}
-                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-accent/25 px-4 text-sm font-bold text-stone-100 transition hover:border-accent hover:text-accent"
-                  >
-                    <ExternalLink className="h-4 w-4" aria-hidden="true" />
-                    Ficha
-                  </Link>
+              <div className="mt-4 grid gap-4 lg:grid-cols-[0.9fr_1.2fr]">
+                <div className="rounded-2xl border border-white/10 bg-[#061a2b]/70 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <h4 className="text-xs font-bold uppercase tracking-[0.14em] text-stone-400">
+                      Tarefas
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTask(null)}
+                      className="rounded-full border border-accent/25 px-3 py-1 text-xs font-bold text-accent transition hover:border-accent"
+                    >
+                      Nova
+                    </button>
+                  </div>
+                  <div className="mt-3 grid gap-2">
+                    {opportunity.tasks.length > 0 ? (
+                      opportunity.tasks.map((task) => {
+                        const taskOverdue =
+                          !task.completedAt && new Date(task.dueAt).getTime() < Date.now();
+                        const isSelected = selectedTask?.id === task.id;
+
+                        return (
+                          <button
+                            key={task.id}
+                            type="button"
+                            onClick={() => setSelectedTask(task)}
+                            className={cn(
+                              "rounded-xl border border-white/10 bg-white/[0.035] p-3 text-left transition hover:border-accent/50",
+                              isSelected && "border-accent/70 bg-accent/10",
+                              task.completedAt && "opacity-60",
+                              taskOverdue && "border-[#7a1b22]/60",
+                            )}
+                          >
+                            <p className="truncate text-sm font-bold text-stone-100">
+                              {task.title}
+                            </p>
+                            <p className="mt-1 text-xs text-stone-400">
+                              {formatDateTime(task.dueAt)}
+                              {task.completedAt ? " · concluida" : ""}
+                              {taskOverdue ? " · vencida" : ""}
+                            </p>
+                          </button>
+                        );
+                      })
+                    ) : (
+                      <p className="rounded-xl border border-dashed border-accent/20 p-3 text-sm text-stone-400">
+                        Ainda nao ha tarefas nesta oportunidade.
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </form>
+
+                <form
+                  key={selectedTask?.id ?? "new-task"}
+                  action={selectedTask ? updateTaskAction : createTaskAction}
+                  className="grid gap-3 md:grid-cols-2"
+                >
+                  {selectedTask ? (
+                    <input type="hidden" name="taskId" value={selectedTask.id} />
+                  ) : (
+                    <input type="hidden" name="opportunityId" value={opportunity.id} />
+                  )}
+                  <label className="grid gap-1 text-sm font-semibold text-stone-300 md:col-span-2">
+                    {selectedTask ? "Editar tarefa" : "Nova tarefa"}
+                    <input
+                      required
+                      name="title"
+                      defaultValue={selectedOrNextTask?.title ?? ""}
+                      className="min-h-11 rounded-xl border border-accent/20 bg-[#061a2b] px-3 text-sm text-stone-100"
+                    />
+                  </label>
+                  <label className="grid gap-1 text-sm font-semibold text-stone-300">
+                    Data
+                    <input
+                      required
+                      type="datetime-local"
+                      name="dueAt"
+                      defaultValue={toLocalDateTimeValue(selectedOrNextTask?.dueAt ?? null)}
+                      className="min-h-11 rounded-xl border border-accent/20 bg-[#061a2b] px-3 text-sm text-stone-100"
+                    />
+                  </label>
+                  <label className="grid gap-1 text-sm font-semibold text-stone-300">
+                    Responsavel
+                    <select
+                      name="assignedTo"
+                      defaultValue={selectedOrNextTask?.assignedTo ?? opportunity.assignedTo ?? ""}
+                      className="min-h-11 rounded-xl border border-accent/20 bg-[#061a2b] px-3 text-sm text-stone-100"
+                    >
+                      <option value="">Sem responsavel</option>
+                      {profiles.map((profile) => (
+                        <option key={profile.id} value={profile.id}>
+                          {profile.fullName}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="grid gap-1 text-sm font-semibold text-stone-300">
+                    Prioridade
+                    <select
+                      name="priority"
+                      defaultValue={selectedOrNextTask?.priority ?? "normal"}
+                      className="min-h-11 rounded-xl border border-accent/20 bg-[#061a2b] px-3 text-sm text-stone-100"
+                    >
+                      {taskPriorities.map((priority) => (
+                        <option key={priority.id} value={priority.id}>
+                          {priority.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <div className="flex items-end gap-2">
+                    <button className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl bg-accent px-4 text-sm font-bold text-primary-foreground transition hover:bg-primary">
+                      {selectedTask ? "Guardar alteracoes" : "Criar tarefa"}
+                    </button>
+                    <Link
+                      href={`/crm/oportunidades/${opportunity.id}`}
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-accent/25 px-4 text-sm font-bold text-stone-100 transition hover:border-accent hover:text-accent"
+                    >
+                      <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                      Ficha
+                    </Link>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
         </div>

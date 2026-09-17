@@ -54,6 +54,14 @@ export type CreateTaskInput = {
   priority?: TaskPriority;
 };
 
+export type UpdateTaskInput = {
+  taskId: string;
+  assignedTo: string | null;
+  title: string;
+  dueAt: string;
+  priority?: TaskPriority;
+};
+
 export type AddActivityInput = {
   opportunityId: string;
   userId?: string | null;
@@ -98,6 +106,7 @@ export type CrmRepository = {
     temperature: LeadTemperature,
   ): Promise<OpportunityWithRelations>;
   createTask(input: CreateTaskInput): Promise<Task>;
+  updateTask(input: UpdateTaskInput): Promise<Task>;
   completeTask(taskId: string, userId?: string | null): Promise<Task>;
   addActivity(input: AddActivityInput): Promise<Activity>;
   markOpportunityLost(

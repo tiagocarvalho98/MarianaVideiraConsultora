@@ -16,6 +16,7 @@ import {
   type CrmRepository,
   type OpportunityFilters,
   type TaskFilters,
+  type UpdateTaskInput,
 } from "./repository";
 import {
   mapBuyerLeadFormToIntake,
@@ -307,6 +308,7 @@ export function createMockCrmRepository(
             opportunityTasks.filter((task) => !task.completedAt),
             (task) => task.dueAt,
           )[0] ?? null,
+        tasks: sortByDateAsc(opportunityTasks, (task) => task.dueAt),
         activities: state.activities
           .filter((activity) => activity.opportunityId === opportunity.id)
           .sort(
@@ -740,6 +742,19 @@ export function createMockCrmRepository(
         metadata: { due_at: input.dueAt },
         occurredAt: timestamp,
       });
+
+      return task;
+    },
+    async updateTask(input: UpdateTaskInput) {
+      const task = getTaskRecord(input.taskId);
+      const timestamp = now().toISOString();
+
+      task.assignedTo = input.assignedTo;
+      task.title = input.title;
+      task.dueAt = input.dueAt;
+      task.priority = input.priority ?? "normal";
+      task.updatedAt = timestamp;
+      recalculateNextActionAt(task.opportunityId);
 
       return task;
     },

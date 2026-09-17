@@ -34,6 +34,7 @@ import {
   type CrmRepository,
   type OpportunityFilters,
   type TaskFilters,
+  type UpdateTaskInput,
 } from "./repository";
 
 type ProfileRow = Tables<"profiles">;
@@ -502,6 +503,7 @@ async function allRelations() {
       nextTask: [...opportunityTasks]
         .filter((task) => !task.completedAt)
         .sort(byDueDate)[0] ?? null,
+      tasks: [...opportunityTasks].sort(byDueDate),
       activities: activities.filter((activity) => activity.opportunityId === opportunity.id),
     } satisfies OpportunityWithRelations;
   });
@@ -716,6 +718,24 @@ export function createSupabaseRepository(): CrmRepository {
         body: input.title,
         metadata: { due_at: input.dueAt },
       });
+
+      return toTask(data);
+    },
+    async updateTask(input: UpdateTaskInput) {
+      const supabase = await createSupabaseServerClient();
+      const { data, error } = await supabase
+        .from("tasks")
+        .update({
+          assigned_to: input.assignedTo,
+          title: input.title,
+          due_at: input.dueAt,
+          priority: input.priority ?? "normal",
+        })
+        .eq("id", input.taskId)
+        .select("*")
+        .single();
+
+      if (error) throw error;
 
       return toTask(data);
     },

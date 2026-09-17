@@ -100,6 +100,26 @@ export async function createTaskAction(formData: FormData) {
   revalidateCrmPaths(opportunityId, opportunity?.contactId);
 }
 
+export async function updateTaskAction(formData: FormData) {
+  const taskId = value(formData, "taskId");
+  const title = value(formData, "title");
+  const dueAt = value(formData, "dueAt");
+  const assignedTo = optionalValue(formData, "assignedTo");
+  const priority = (optionalValue(formData, "priority") ?? "normal") as TaskPriority;
+  const dueAtIso = new Date(dueAt).toISOString();
+
+  const task = await getCrmRepository().updateTask({
+    taskId,
+    assignedTo,
+    title,
+    dueAt: dueAtIso,
+    priority,
+  });
+  const opportunity = await getCrmRepository().getOpportunity(task.opportunityId);
+
+  revalidateCrmPaths(task.opportunityId, opportunity?.contactId);
+}
+
 export async function completeTaskAction(formData: FormData) {
   const taskId = value(formData, "taskId");
   const task = await getCrmRepository().completeTask(taskId, await currentUserId());
