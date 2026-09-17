@@ -52,33 +52,33 @@ export default async function ContactDetailPage({
         />
       </div>
 
-      <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+      <section className="crm-card rounded-3xl p-5">
         <div className="grid gap-4 md:grid-cols-4">
           <div>
-            <p className="text-xs font-bold uppercase text-stone-500">Telefone</p>
-            <a href={`tel:${contact.phone}`} className="mt-1 block font-bold text-stone-950 hover:text-primary">
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-stone-500">Telefone</p>
+            <a href={`tel:${contact.phone}`} className="mt-1 block font-bold text-stone-50 hover:text-accent">
               {contact.phone}
             </a>
           </div>
           <div>
-            <p className="text-xs font-bold uppercase text-stone-500">Email</p>
-            <p className="mt-1 font-bold text-stone-950">{contact.email ?? "Sem email"}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-stone-500">Email</p>
+            <p className="mt-1 font-bold text-stone-50">{contact.email ?? "Sem email"}</p>
           </div>
           <div>
-            <p className="text-xs font-bold uppercase text-stone-500">Oportunidades</p>
-            <p className="mt-1 font-bold text-stone-950">{contactOpportunities.length}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-stone-500">Oportunidades</p>
+            <p className="mt-1 font-bold text-accent">{contactOpportunities.length}</p>
           </div>
           <div>
-            <p className="text-xs font-bold uppercase text-stone-500">Atividades</p>
-            <p className="mt-1 font-bold text-stone-950">{activityCount}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-stone-500">Atividades</p>
+            <p className="mt-1 font-bold text-accent">{activityCount}</p>
           </div>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-4">
-          <h2 className="text-lg font-bold text-stone-950">Oportunidades associadas</h2>
-          <span className="rounded-full bg-stone-100 px-3 py-1 text-sm font-bold text-stone-700">
+      <section className="crm-surface rounded-3xl p-5">
+        <div className="relative flex items-center justify-between gap-4">
+          <h2 className="text-lg font-bold text-stone-50">Oportunidades associadas</h2>
+          <span className="rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-sm font-bold text-accent">
             Contacto ≠ oportunidade
           </span>
         </div>
@@ -89,21 +89,21 @@ export default async function ContactDetailPage({
             ))}
           </div>
         ) : (
-          <div className="mt-4 rounded-xl border border-dashed border-border p-5 text-sm text-stone-600">
+          <div className="relative mt-4 rounded-xl border border-dashed border-accent/25 p-5 text-sm text-stone-400">
             Este contacto ainda nao tem oportunidades.
           </div>
         )}
       </section>
 
-      <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-bold text-stone-950">Historico comercial resumido</h2>
+      <section className="crm-surface crm-geometric-detail rounded-3xl p-5">
+        <h2 className="relative text-lg font-bold text-stone-50">Historico comercial resumido</h2>
         {contactOpportunities.length > 0 ? (
           <ol className="mt-4 space-y-3">
             {contactOpportunities.map((opportunity) => (
-              <li key={opportunity.id} className="rounded-xl bg-stone-50 p-3 text-sm text-stone-700">
+              <li key={opportunity.id} className="relative rounded-xl border border-white/10 bg-white/[0.035] p-3 text-sm text-stone-300">
                 <Link
                   href={`/crm/oportunidades/${opportunity.id}`}
-                  className="font-bold text-stone-950 hover:text-primary"
+                  className="font-bold text-stone-50 hover:text-accent"
                 >
                   {opportunity.type === "buyer" ? "Compra" : "Venda"} em{" "}
                   {opportunity.location ?? "local por confirmar"}
@@ -116,7 +116,7 @@ export default async function ContactDetailPage({
             ))}
           </ol>
         ) : (
-          <p className="mt-3 text-sm text-stone-600">Sem historico comercial.</p>
+          <p className="relative mt-3 text-sm text-stone-400">Sem historico comercial.</p>
         )}
       </section>
     </div>

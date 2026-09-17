@@ -99,7 +99,7 @@ export function ManualOpportunityDialog({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-white transition hover:bg-stone-900"
+        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-accent px-4 text-sm font-bold text-primary-foreground transition hover:bg-primary"
       >
         <Plus className="h-4 w-4" aria-hidden="true" />
         {buttonLabel}

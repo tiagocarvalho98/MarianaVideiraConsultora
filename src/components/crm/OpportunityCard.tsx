@@ -35,8 +35,8 @@ export function OpportunityCard({
   return (
     <article
       className={cn(
-        "rounded-2xl border bg-white p-4 shadow-sm transition hover:border-primary/40 hover:shadow-soft",
-        requiresAttention ? "border-accent/40" : "border-border",
+        "crm-card rounded-2xl p-4 transition hover:border-accent/40",
+        requiresAttention && "border-[#7a1b22]/60",
         compact && "p-3",
       )}
     >
@@ -45,42 +45,42 @@ export function OpportunityCard({
           <div className="flex flex-wrap items-center gap-2">
             <Link
               href={`/crm/oportunidades/${opportunity.id}`}
-              className="text-base font-bold text-stone-950 hover:text-primary"
+              className="text-base font-bold text-stone-50 hover:text-accent"
             >
               {name}
             </Link>
             <TypeBadge type={opportunity.type} />
           </div>
-          <p className="mt-1 text-sm font-semibold text-stone-700">
+          <p className="mt-1 text-sm font-semibold text-stone-300">
             {formatStage(opportunity.stage)}
           </p>
         </div>
         <TemperatureBadge temperature={opportunity.temperature} />
       </div>
 
-      <div className="mt-4 grid gap-2 text-sm text-stone-600">
+      <div className="mt-4 grid gap-2 text-sm text-stone-300">
         <span className="flex items-center gap-2">
-          <MapPin className="h-4 w-4 text-stone-400" aria-hidden="true" />
+          <MapPin className="h-4 w-4 text-accent/70" aria-hidden="true" />
           {opportunity.location ?? "Localizacao por confirmar"}
         </span>
         <span className="flex items-center gap-2">
-          <UserRound className="h-4 w-4 text-stone-400" aria-hidden="true" />
+          <UserRound className="h-4 w-4 text-accent/70" aria-hidden="true" />
           {opportunity.assignedProfile?.fullName ?? "Sem responsavel"}
         </span>
         <span className="flex items-start gap-2">
-          <CalendarClock className="mt-0.5 h-4 w-4 text-stone-400" aria-hidden="true" />
+          <CalendarClock className="mt-0.5 h-4 w-4 text-accent/70" aria-hidden="true" />
           <span>
             {opportunity.nextTask?.title ?? "Sem proxima acao"} ·{" "}
             {formatDateTime(opportunity.nextActionAt)}
             {opportunity.nextActionAt ? (
-              <span className="ml-1 font-semibold text-stone-800">
+              <span className="ml-1 font-semibold text-stone-100">
                 {formatRelativeTime(opportunity.nextActionAt)}
               </span>
             ) : null}
           </span>
         </span>
         {showSource && opportunity.source ? (
-          <span className="text-xs font-bold uppercase text-stone-500">
+          <span className="text-xs font-bold uppercase tracking-[0.14em] text-stone-400">
             Origem: {opportunity.source.name}
           </span>
         ) : null}
@@ -95,7 +95,7 @@ export function OpportunityCard({
         ) : null}
         <Link
           href={`/crm/oportunidades/${opportunity.id}`}
-          className="inline-flex min-h-10 items-center rounded-xl border border-border px-3 text-sm font-bold text-stone-700 transition hover:border-primary hover:text-primary"
+          className="inline-flex min-h-10 items-center rounded-xl border border-accent/25 px-3 text-sm font-bold text-stone-100 transition hover:border-accent hover:text-accent"
         >
           Abrir
         </Link>

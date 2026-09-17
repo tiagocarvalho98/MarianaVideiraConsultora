@@ -32,15 +32,18 @@ export default async function CrmLayout({
   ]);
 
   return (
-    <div className="min-h-dvh bg-background pb-24 lg:pb-0 lg:pl-72">
+    <div className="crm-shell min-h-dvh pb-24 text-stone-100 lg:pb-0 lg:pl-72">
       <CrmSidebar
         profile={{
           fullName: profile.fullName,
           role: profile.role,
         }}
       />
-      <header className="flex flex-col gap-3 border-b border-border bg-background/90 px-5 py-4 backdrop-blur sm:flex-row sm:items-center sm:justify-between lg:px-8">
-        <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">CRM Mariana</p>
+      <header className="sticky top-0 z-30 flex flex-col gap-3 border-b border-[rgba(229,199,157,0.18)] bg-[rgba(3,17,31,0.82)] px-5 py-4 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between lg:px-8">
+        <div>
+          <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">CRM Mariana</p>
+          <p className="mt-1 text-sm text-stone-400">Comando comercial privado</p>
+        </div>
         <ManualOpportunityDialog
           profiles={profiles}
           sources={sources}

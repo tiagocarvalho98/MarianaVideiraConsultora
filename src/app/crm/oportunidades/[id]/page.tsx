@@ -47,13 +47,13 @@ export default async function OpportunityDetailPage({
       />
 
       {created === "1" ? (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-bold text-emerald-800">
+        <div className="rounded-2xl border border-emerald-300/30 bg-emerald-300/10 p-4 text-sm font-bold text-emerald-100">
           Oportunidade criada.
         </div>
       ) : null}
 
-      <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <section className="crm-surface crm-geometric-detail rounded-3xl p-5">
+        <div className="relative flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <TypeBadge type={opportunity.type} />
@@ -63,43 +63,43 @@ export default async function OpportunityDetailPage({
             <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
               <div>
                 <dt className="font-bold text-stone-500">Telefone</dt>
-                <dd className="mt-1 text-stone-950">{opportunity.contact.phone}</dd>
+                <dd className="mt-1 text-stone-50">{opportunity.contact.phone}</dd>
               </div>
               <div>
                 <dt className="font-bold text-stone-500">Email</dt>
-                <dd className="mt-1 text-stone-950">
+                <dd className="mt-1 text-stone-50">
                   {opportunity.contact.email ?? "Sem email"}
                 </dd>
               </div>
               <div>
                 <dt className="font-bold text-stone-500">Localizacao</dt>
-                <dd className="mt-1 text-stone-950">
+                <dd className="mt-1 text-stone-50">
                   {opportunity.location ?? "Por confirmar"}
                 </dd>
               </div>
               <div>
                 <dt className="font-bold text-stone-500">Origem</dt>
-                <dd className="mt-1 text-stone-950">
+                <dd className="mt-1 text-stone-50">
                   {opportunity.source?.name ?? "Sem origem"}
                 </dd>
               </div>
               <div>
                 <dt className="font-bold text-stone-500">Stage</dt>
-                <dd className="mt-1 text-stone-950">{formatStage(opportunity.stage)}</dd>
+                <dd className="mt-1 text-stone-50">{formatStage(opportunity.stage)}</dd>
               </div>
               <div>
                 <dt className="font-bold text-stone-500">Status</dt>
-                <dd className="mt-1 text-stone-950">{formatStatus(opportunity.status)}</dd>
+                <dd className="mt-1 text-stone-50">{formatStatus(opportunity.status)}</dd>
               </div>
               <div>
                 <dt className="font-bold text-stone-500">Responsavel</dt>
-                <dd className="mt-1 text-stone-950">
+                <dd className="mt-1 text-stone-50">
                   {opportunity.assignedProfile?.fullName ?? "Sem responsavel"}
                 </dd>
               </div>
               <div>
                 <dt className="font-bold text-stone-500">Ultima atividade</dt>
-                <dd className="mt-1 text-stone-950">
+                <dd className="mt-1 text-stone-50">
                   {formatDateTime(opportunity.lastActivityAt)}
                 </dd>
               </div>
@@ -111,7 +111,7 @@ export default async function OpportunityDetailPage({
         </div>
 
         {opportunity.status === "lost" ? (
-          <div className="mt-5 rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-800">
+          <div className="relative mt-5 rounded-xl border border-[#7a1b22]/60 bg-[#7a1b22]/25 p-4 text-sm text-red-100">
             Perdida: {opportunity.lostReason ? formatStage(opportunity.lostReason) : "motivo por confirmar"}
             {opportunity.lostNotes ? ` · ${opportunity.lostNotes}` : ""}
           </div>
@@ -120,8 +120,8 @@ export default async function OpportunityDetailPage({
 
       <NextActionPanel opportunity={opportunity} profiles={profiles} />
 
-      <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-bold text-stone-950">Gestao rapida</h2>
+      <section className="crm-card rounded-3xl p-5">
+        <h2 className="text-lg font-bold text-stone-50">Gestao rapida</h2>
         <div className="mt-4">
           <OpportunityControls opportunity={opportunity} profiles={profiles} />
         </div>

@@ -32,24 +32,24 @@ function PipelineBoard({
   profiles: Profile[];
 }) {
   return (
-    <section className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
-      <div className="flex items-center justify-between gap-4">
-        <h2 className="text-xl font-bold text-stone-950">{title}</h2>
-        <span className="rounded-full bg-stone-100 px-3 py-1 text-sm font-bold text-stone-700">
+    <section className="crm-surface rounded-3xl p-5">
+      <div className="relative flex items-center justify-between gap-4">
+        <h2 className="text-xl font-bold text-stone-50">{title}</h2>
+        <span className="rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-sm font-bold text-accent">
           {opportunities.length}
         </span>
       </div>
-      <div className="mt-4 grid gap-4 xl:grid-cols-3">
+      <div className="relative mt-4 grid gap-4 xl:grid-cols-3">
         {stages.map((stage) => {
           const stageOpportunities = opportunities.filter(
             (opportunity) => opportunity.stage === stage.id,
           );
 
           return (
-            <div key={stage.id} className="rounded-2xl bg-stone-50 p-3">
+            <div key={stage.id} className="rounded-2xl border border-white/10 bg-white/[0.035] p-3">
               <div className="flex items-center justify-between gap-3 px-1 py-2">
-                <h3 className="text-sm font-bold text-stone-800">{stage.label}</h3>
-                <span className="rounded-full bg-white px-2.5 py-1 text-xs font-bold text-stone-600">
+                <h3 className="text-sm font-bold text-stone-200">{stage.label}</h3>
+                <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-bold text-stone-300">
                   {stageOpportunities.length}
                 </span>
               </div>
@@ -61,7 +61,7 @@ function PipelineBoard({
                   </div>
                 ))}
                 {stageOpportunities.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-border bg-white p-4 text-sm text-stone-500">
+                  <div className="rounded-xl border border-dashed border-accent/25 bg-white/5 p-4 text-sm text-stone-400">
                     Sem oportunidades nesta etapa.
                   </div>
                 ) : null}
@@ -109,22 +109,22 @@ export default async function PipelinePage({
         description="Leads e oportunidades por etapa. A mudanca de estado funciona por dropdown e cria uma activity auditavel."
       />
 
-      <form className="rounded-2xl border border-border bg-white p-4 shadow-sm">
-        <div className="flex items-center gap-2 text-sm font-bold text-stone-700">
+      <form className="crm-card rounded-3xl p-4">
+        <div className="flex items-center gap-2 text-sm font-bold text-stone-200">
           <Filter className="h-4 w-4" aria-hidden="true" />
           Filtros
         </div>
         <div className="mt-3 grid gap-3 md:grid-cols-4">
-          <label className="grid gap-1 text-sm font-semibold text-stone-700">
+          <label className="grid gap-1 text-sm font-semibold text-stone-300">
             Vista
-            <select name="type" defaultValue={selectedType} className="min-h-11 rounded-xl border border-border bg-white px-3">
+            <select name="type" defaultValue={selectedType} className="min-h-11 rounded-xl border border-accent/20 bg-[#061a2b] px-3 text-stone-100">
               <option value="buyer">Compradores</option>
               <option value="seller">Vendedores</option>
             </select>
           </label>
-          <label className="grid gap-1 text-sm font-semibold text-stone-700">
+          <label className="grid gap-1 text-sm font-semibold text-stone-300">
             Responsavel
-            <select name="assignedTo" defaultValue={params.assignedTo ?? ""} className="min-h-11 rounded-xl border border-border bg-white px-3">
+            <select name="assignedTo" defaultValue={params.assignedTo ?? ""} className="min-h-11 rounded-xl border border-accent/20 bg-[#061a2b] px-3 text-stone-100">
               <option value="">Todos</option>
               {profiles.map((profile) => (
                 <option key={profile.id} value={profile.id}>
@@ -133,9 +133,9 @@ export default async function PipelinePage({
               ))}
             </select>
           </label>
-          <label className="grid gap-1 text-sm font-semibold text-stone-700">
+          <label className="grid gap-1 text-sm font-semibold text-stone-300">
             Temperatura
-            <select name="temperature" defaultValue={params.temperature ?? ""} className="min-h-11 rounded-xl border border-border bg-white px-3">
+            <select name="temperature" defaultValue={params.temperature ?? ""} className="min-h-11 rounded-xl border border-accent/20 bg-[#061a2b] px-3 text-stone-100">
               <option value="">Todas</option>
               {leadTemperatures.map((temperature) => (
                 <option key={temperature.id} value={temperature.id}>
@@ -144,9 +144,9 @@ export default async function PipelinePage({
               ))}
             </select>
           </label>
-          <label className="grid gap-1 text-sm font-semibold text-stone-700">
+          <label className="grid gap-1 text-sm font-semibold text-stone-300">
             Origem
-            <select name="sourceId" defaultValue={params.sourceId ?? ""} className="min-h-11 rounded-xl border border-border bg-white px-3">
+            <select name="sourceId" defaultValue={params.sourceId ?? ""} className="min-h-11 rounded-xl border border-accent/20 bg-[#061a2b] px-3 text-stone-100">
               <option value="">Todas</option>
               {sources.map((source) => (
                 <option key={source.id} value={source.id}>
@@ -156,7 +156,7 @@ export default async function PipelinePage({
             </select>
           </label>
         </div>
-        <button className="mt-3 min-h-11 rounded-xl bg-primary px-4 text-sm font-bold text-white transition hover:bg-stone-900">
+        <button className="mt-3 min-h-11 rounded-xl bg-accent px-4 text-sm font-bold text-primary-foreground transition hover:bg-primary">
           Aplicar filtros
         </button>
       </form>

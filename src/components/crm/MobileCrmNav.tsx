@@ -10,7 +10,7 @@ export function MobileCrmNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-stone-200 bg-white/95 px-2 py-2 shadow-soft backdrop-blur lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-accent/20 bg-[rgba(1,9,20,0.92)] px-2 py-2 shadow-soft backdrop-blur-xl lg:hidden"
       aria-label="Navegacao movel CRM"
     >
       <div className="grid grid-cols-5 gap-1">
@@ -24,7 +24,7 @@ export function MobileCrmNav() {
               href={item.href}
               className={cn(
                 "flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[11px] font-semibold transition",
-                active ? "bg-primary text-white" : "text-stone-600 hover:bg-stone-100",
+                active ? "bg-accent text-primary-foreground" : "text-stone-300 hover:bg-white/10",
               )}
             >
               <Icon className="h-4 w-4" aria-hidden="true" />

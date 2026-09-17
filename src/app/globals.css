@@ -20,6 +20,13 @@
   --champagne-500: #d6ae78;
   --champagne-300: #e5c79d;
   --ivory-100: #f4efe7;
+  --crm-navy-980: #010914;
+  --crm-navy-950: #03111f;
+  --crm-navy-900: #061a2b;
+  --crm-navy-850: #0a2236;
+  --crm-red-900: #5f1218;
+  --crm-red-800: #7a1b22;
+  --crm-line: rgba(229, 199, 157, 0.22);
 }
 
 * {
@@ -75,6 +82,58 @@ textarea {
 .fine-line {
   background: linear-gradient(90deg, transparent, rgba(229, 199, 157, 0.24), transparent);
   height: 1px;
+}
+
+.crm-shell {
+  background:
+    linear-gradient(135deg, rgba(95, 18, 24, 0.12), transparent 28%),
+    radial-gradient(circle at 78% 8%, rgba(214, 174, 120, 0.11), transparent 28rem),
+    linear-gradient(180deg, var(--crm-navy-950), var(--crm-navy-980));
+}
+
+.crm-surface {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--crm-line);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.025)),
+    var(--crm-navy-900);
+  box-shadow: 0 24px 70px -46px rgba(0, 0, 0, 0.75);
+}
+
+.crm-surface::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(214, 174, 120, 0.16), transparent 18%),
+    linear-gradient(135deg, transparent 78%, rgba(95, 18, 24, 0.22) 78.5%, transparent 86%);
+  opacity: 0.8;
+}
+
+.crm-card {
+  border: 1px solid rgba(229, 199, 157, 0.18);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.035)),
+    var(--crm-navy-850);
+  box-shadow: 0 18px 54px -42px rgba(0, 0, 0, 0.8);
+}
+
+.crm-geometric-detail {
+  position: relative;
+}
+
+.crm-geometric-detail::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 72px;
+  height: 72px;
+  border-top: 1px solid rgba(122, 27, 34, 0.72);
+  border-right: 1px solid rgba(122, 27, 34, 0.72);
+  pointer-events: none;
 }
 
 .reveal-soft {

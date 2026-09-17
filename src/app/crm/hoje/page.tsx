@@ -6,13 +6,13 @@ import { PageIntro } from "@/components/crm/PageIntro";
 import { getCrmRepository } from "@/lib/crm";
 
 const hierarchy: Record<string, string> = {
-  newUncontacted: "border-red-200 bg-red-50/50",
-  overdue: "border-red-200 bg-red-50/50",
-  todayActions: "border-primary/20 bg-primary/5",
-  todayMeetings: "border-primary/20 bg-primary/5",
-  missingNextAction: "border-orange-200 bg-orange-50/50",
-  unassigned: "border-orange-200 bg-orange-50/50",
-  stale: "border-stone-200 bg-white",
+  newUncontacted: "border-[#7a1b22]/55",
+  overdue: "border-[#7a1b22]/55",
+  todayActions: "border-accent/25",
+  todayMeetings: "border-accent/25",
+  missingNextAction: "border-amber-300/25",
+  unassigned: "border-amber-300/25",
+  stale: "border-white/10",
 };
 
 export default async function HojePage() {
@@ -35,17 +35,17 @@ export default async function HojePage() {
       />
 
       <div className="mb-6 grid gap-3 md:grid-cols-4">
-        <div className="rounded-2xl bg-primary p-5 text-white md:col-span-2">
-          <p className="text-sm font-semibold text-white/75">Prioridades abertas</p>
+        <div className="crm-surface crm-geometric-detail rounded-3xl p-5 md:col-span-2">
+          <p className="text-sm font-semibold text-stone-300">Prioridades abertas</p>
           <p className="mt-2 font-display text-5xl font-semibold">{total}</p>
         </div>
-        <div className="rounded-2xl border border-border bg-white p-5">
-          <p className="text-sm font-semibold text-stone-600">Urgente</p>
-          <p className="mt-2 text-3xl font-bold text-red-700">{urgentCount}</p>
+        <div className="crm-card rounded-3xl p-5">
+          <p className="text-sm font-semibold text-stone-300">Urgente</p>
+          <p className="mt-2 text-3xl font-bold text-red-100">{urgentCount}</p>
         </div>
-        <div className="rounded-2xl border border-border bg-white p-5">
-          <p className="text-sm font-semibold text-stone-600">Hoje</p>
-          <p className="mt-2 text-3xl font-bold text-primary">{todayCount}</p>
+        <div className="crm-card rounded-3xl p-5">
+          <p className="text-sm font-semibold text-stone-300">Hoje</p>
+          <p className="mt-2 text-3xl font-bold text-accent">{todayCount}</p>
         </div>
       </div>
 
@@ -53,14 +53,14 @@ export default async function HojePage() {
         {groups.map((group) => (
           <section
             key={group.id}
-            className={`rounded-2xl border p-5 shadow-sm ${hierarchy[group.id]}`}
+            className={`crm-surface rounded-3xl border p-5 ${hierarchy[group.id]}`}
           >
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div className="relative flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <h2 className="text-xl font-bold text-stone-950">{group.title}</h2>
-                <p className="mt-1 text-sm text-stone-600">{group.description}</p>
+                <h2 className="text-xl font-bold text-stone-50">{group.title}</h2>
+                <p className="mt-1 text-sm text-stone-400">{group.description}</p>
               </div>
-              <span className="rounded-full bg-white px-3 py-1 text-sm font-bold text-stone-700">
+              <span className="rounded-full border border-accent/25 bg-accent/10 px-3 py-1 text-sm font-bold text-accent">
                 {group.opportunities.length}
               </span>
             </div>
@@ -70,19 +70,19 @@ export default async function HojePage() {
                 {group.opportunities.map((opportunity) => (
                   <div
                     key={`${group.id}-${opportunity.id}`}
-                    className="rounded-2xl bg-white/70 p-2"
+                    className="rounded-2xl bg-white/[0.03] p-2"
                   >
                     <OpportunityCard opportunity={opportunity} compact showSource />
                     <div className="mt-2 flex flex-wrap gap-2">
                       <Link
                         href={`/crm/oportunidades/${opportunity.id}`}
-                        className="inline-flex min-h-10 items-center rounded-xl bg-primary px-3 text-sm font-bold text-white transition hover:bg-stone-900"
+                        className="inline-flex min-h-10 items-center rounded-xl bg-accent px-3 text-sm font-bold text-primary-foreground transition hover:bg-primary"
                       >
                         Abrir oportunidade
                       </Link>
                       <form action={registerCallAction}>
                         <input type="hidden" name="opportunityId" value={opportunity.id} />
-                        <button className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-border bg-white px-3 text-sm font-bold text-stone-700 transition hover:border-primary hover:text-primary">
+                          <button className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-accent/25 bg-white/5 px-3 text-sm font-bold text-stone-100 transition hover:border-accent hover:text-accent">
                           <PhoneCall className="h-4 w-4" aria-hidden="true" />
                           Registar chamada
                         </button>
@@ -90,7 +90,7 @@ export default async function HojePage() {
                       {opportunity.nextTask ? (
                         <form action={completeTaskAction}>
                           <input type="hidden" name="taskId" value={opportunity.nextTask.id} />
-                          <button className="inline-flex min-h-10 items-center rounded-xl border border-border bg-white px-3 text-sm font-bold text-stone-700 transition hover:border-primary hover:text-primary">
+                          <button className="inline-flex min-h-10 items-center rounded-xl border border-accent/25 bg-white/5 px-3 text-sm font-bold text-stone-100 transition hover:border-accent hover:text-accent">
                             Concluir tarefa
                           </button>
                         </form>
@@ -100,7 +100,7 @@ export default async function HojePage() {
                 ))}
               </div>
             ) : (
-              <div className="mt-4 rounded-xl border border-dashed border-border bg-white p-5 text-sm text-stone-600">
+              <div className="relative mt-4 rounded-xl border border-dashed border-accent/25 bg-white/5 p-5 text-sm text-stone-400">
                 Nada pendente neste bloco.
               </div>
             )}

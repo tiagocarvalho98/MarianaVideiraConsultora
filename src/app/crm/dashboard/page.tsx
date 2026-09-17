@@ -26,18 +26,18 @@ export default async function DashboardPage() {
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-        <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-bold text-stone-950">Origem das leads</h2>
+        <section className="crm-surface rounded-3xl p-5">
+          <h2 className="relative text-lg font-bold text-stone-50">Origem das leads</h2>
           <div className="mt-5 space-y-4">
             {metrics.bySource.map((item) => (
-              <div key={item.source}>
+              <div key={item.source} className="relative">
                 <div className="flex justify-between gap-4 text-sm">
-                  <span className="font-semibold text-stone-700">{item.source}</span>
-                  <strong>{item.count}</strong>
+                  <span className="font-semibold text-stone-300">{item.source}</span>
+                  <strong className="text-stone-100">{item.count}</strong>
                 </div>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-stone-100">
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
                   <div
-                    className="h-full rounded-full bg-primary"
+                    className="h-full rounded-full bg-accent"
                     style={{ width: `${Math.max(8, (item.count / maxSourceCount) * 100)}%` }}
                   />
                 </div>
@@ -46,9 +46,9 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-bold text-stone-950">Leitura operacional</h2>
-          <div className="mt-4 space-y-3 text-sm text-stone-700">
+        <section className="crm-surface crm-geometric-detail rounded-3xl p-5">
+          <h2 className="relative text-lg font-bold text-stone-50">Leitura operacional</h2>
+          <div className="relative mt-4 space-y-3 text-sm leading-6 text-stone-300">
             <p>
               <strong>{metrics.overdueFollowUps}</strong> follow-ups vencidos precisam de
               atencao antes de novas analises.

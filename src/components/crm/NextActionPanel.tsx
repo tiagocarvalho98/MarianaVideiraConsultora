@@ -26,28 +26,28 @@ export function NextActionPanel({
   return (
     <section
       className={cn(
-        "rounded-2xl border bg-white p-5 shadow-sm",
-        isOverdue || qualifiedWithoutAction ? "border-orange-300" : "border-border",
+        "crm-surface rounded-3xl p-5",
+        isOverdue || qualifiedWithoutAction ? "border-[#7a1b22]/60" : "",
       )}
     >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="relative flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-bold uppercase text-accent">Proxima acao</p>
-          <h2 className="mt-1 text-xl font-bold text-stone-950">
+          <h2 className="mt-1 text-xl font-bold text-stone-50">
             {nextTask?.title ?? "Sem acao definida"}
           </h2>
           {nextTask ? (
-            <p className="mt-1 text-sm text-stone-600">
+            <p className="mt-1 text-sm text-stone-400">
               {formatDateTime(nextTask.dueAt)} · {formatRelativeTime(nextTask.dueAt)}
             </p>
           ) : (
-            <p className="mt-1 text-sm text-stone-600">
+            <p className="mt-1 text-sm text-stone-400">
               Define uma tarefa para manter esta oportunidade em movimento.
             </p>
           )}
         </div>
         {isOverdue || qualifiedWithoutAction ? (
-          <span className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1.5 text-sm font-bold text-orange-800">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#7a1b22]/60 bg-[#7a1b22]/25 px-3 py-1.5 text-sm font-bold text-red-100">
             <AlertTriangle className="h-4 w-4" aria-hidden="true" />
             Requer atencao
           </span>
@@ -55,29 +55,29 @@ export function NextActionPanel({
       </div>
 
       {nextTask ? (
-        <div className="mt-4 rounded-xl bg-stone-50 p-4">
+        <div className="relative mt-4 rounded-xl border border-white/10 bg-white/[0.035] p-4">
           <dl className="grid gap-3 text-sm sm:grid-cols-3">
             <div>
               <dt className="font-bold text-stone-500">Responsavel</dt>
-              <dd className="mt-1 text-stone-900">
+              <dd className="mt-1 text-stone-100">
                 {profiles.find((profile) => profile.id === nextTask.assignedTo)?.fullName ??
                   "Sem responsavel"}
               </dd>
             </div>
             <div>
               <dt className="font-bold text-stone-500">Prioridade</dt>
-              <dd className="mt-1 text-stone-900">{nextTask.priority}</dd>
+              <dd className="mt-1 text-stone-100">{nextTask.priority}</dd>
             </div>
             <div>
               <dt className="font-bold text-stone-500">Estado</dt>
-              <dd className="mt-1 text-stone-900">
+              <dd className="mt-1 text-stone-100">
                 {isOverdue ? "Vencida" : "Planeada"}
               </dd>
             </div>
           </dl>
           <form action={completeTaskAction} className="mt-4">
             <input type="hidden" name="taskId" value={nextTask.id} />
-            <button className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-white transition hover:bg-stone-900">
+            <button className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-accent px-4 text-sm font-bold text-primary-foreground transition hover:bg-primary">
               <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
               Marcar concluida
             </button>
@@ -85,33 +85,33 @@ export function NextActionPanel({
         </div>
       ) : null}
 
-      <form action={createTaskAction} className="mt-5 grid gap-3 md:grid-cols-[1.2fr_0.8fr_0.8fr_0.7fr_auto]">
+      <form action={createTaskAction} className="relative mt-5 grid gap-3 md:grid-cols-[1.2fr_0.8fr_0.8fr_0.7fr_auto]">
         <input type="hidden" name="opportunityId" value={opportunity.id} />
-        <label className="grid gap-1 text-sm font-semibold text-stone-700">
+        <label className="grid gap-1 text-sm font-semibold text-stone-300">
           Titulo
           <input
             required
             name="title"
             defaultValue={nextTask?.title ?? ""}
-            className="min-h-11 rounded-xl border border-border bg-white px-3 text-sm text-stone-900"
+            className="min-h-11 rounded-xl border border-accent/20 bg-[#061a2b] px-3 text-sm text-stone-100"
           />
         </label>
-        <label className="grid gap-1 text-sm font-semibold text-stone-700">
+        <label className="grid gap-1 text-sm font-semibold text-stone-300">
           Data
           <input
             required
             type="datetime-local"
             name="dueAt"
             defaultValue={toLocalDateTimeValue(nextTask?.dueAt ?? null)}
-            className="min-h-11 rounded-xl border border-border bg-white px-3 text-sm text-stone-900"
+            className="min-h-11 rounded-xl border border-accent/20 bg-[#061a2b] px-3 text-sm text-stone-100"
           />
         </label>
-        <label className="grid gap-1 text-sm font-semibold text-stone-700">
+        <label className="grid gap-1 text-sm font-semibold text-stone-300">
           Responsavel
           <select
             name="assignedTo"
             defaultValue={nextTask?.assignedTo ?? opportunity.assignedTo ?? ""}
-            className="min-h-11 rounded-xl border border-border bg-white px-3 text-sm text-stone-900"
+            className="min-h-11 rounded-xl border border-accent/20 bg-[#061a2b] px-3 text-sm text-stone-100"
           >
             <option value="">Sem responsavel</option>
             {profiles.map((profile) => (
@@ -121,12 +121,12 @@ export function NextActionPanel({
             ))}
           </select>
         </label>
-        <label className="grid gap-1 text-sm font-semibold text-stone-700">
+        <label className="grid gap-1 text-sm font-semibold text-stone-300">
           Prioridade
           <select
             name="priority"
             defaultValue={nextTask?.priority ?? "normal"}
-            className="min-h-11 rounded-xl border border-border bg-white px-3 text-sm text-stone-900"
+            className="min-h-11 rounded-xl border border-accent/20 bg-[#061a2b] px-3 text-sm text-stone-100"
           >
             {taskPriorities.map((priority) => (
               <option key={priority.id} value={priority.id}>
@@ -135,7 +135,7 @@ export function NextActionPanel({
             ))}
           </select>
         </label>
-        <button className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-white px-4 text-sm font-bold text-stone-800 transition hover:border-primary hover:text-primary md:mt-auto">
+        <button className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-accent/25 bg-white/5 px-4 text-sm font-bold text-stone-100 transition hover:border-accent hover:text-accent md:mt-auto">
           <Clock className="h-4 w-4" aria-hidden="true" />
           Guardar
         </button>

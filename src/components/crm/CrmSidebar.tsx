@@ -9,10 +9,23 @@ type CrmSidebarProps = {
 
 export function CrmSidebar({ profile }: CrmSidebarProps) {
   return (
-    <aside className="fixed left-0 top-0 hidden h-dvh w-72 flex-col border-r border-stone-200 bg-stone-950 text-white lg:flex">
+    <aside className="fixed left-0 top-0 hidden h-dvh w-72 flex-col border-r border-[rgba(229,199,157,0.18)] bg-[rgba(1,9,20,0.94)] text-white lg:flex">
       <div className="border-b border-white/10 p-6">
-        <p className="font-display text-2xl font-semibold">Mariana</p>
-        <p className="mt-1 text-sm text-stone-400">CRM imobiliario privado</p>
+        <div className="flex items-center gap-3">
+          <span className="grid h-12 w-12 place-items-center border border-accent/55 font-display text-lg text-accent">
+            MV
+          </span>
+          <div>
+            <p className="font-display text-2xl font-semibold">Mariana</p>
+            <p className="mt-1 text-xs uppercase tracking-[0.18em] text-stone-400">
+              CRM privado
+            </p>
+          </div>
+        </div>
+        <div className="mt-5 h-px bg-gradient-to-r from-transparent via-[#7a1b22] to-transparent" />
+        <p className="mt-4 text-sm leading-6 text-stone-400">
+          Aquisição, seguimento e conversão sem oportunidades esquecidas.
+        </p>
       </div>
       <nav className="flex-1 space-y-1 p-4" aria-label="Navegacao CRM">
         {crmNavItems.map((item) => {
@@ -30,7 +43,7 @@ export function CrmSidebar({ profile }: CrmSidebarProps) {
         })}
       </nav>
       <div className="border-t border-white/10 p-4">
-        <div className="rounded-xl bg-white/5 p-3">
+        <div className="crm-geometric-detail rounded-xl border border-white/10 bg-white/5 p-3">
           <p className="text-sm font-semibold">{profile.fullName}</p>
           <p className="mt-1 text-xs uppercase tracking-[0.16em] text-stone-400">
             {profile.role}
