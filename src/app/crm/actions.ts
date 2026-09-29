@@ -6,7 +6,7 @@ import { ZodError } from "zod";
 import { getSupabaseSessionProfile } from "@/lib/auth/server-auth";
 import { getCrmRepository } from "@/lib/crm";
 import { manualOpportunitySchema } from "@/lib/crm/manual-opportunity";
-import type { LeadTemperature, TaskPriority } from "@/types/crm";
+import type { CrmNoteCategory, LeadTemperature, TaskPriority } from "@/types/crm";
 
 function value(formData: FormData, key: string) {
   const entry = formData.get(key);
@@ -128,6 +128,24 @@ export async function completeTaskAction(formData: FormData) {
   revalidateCrmPaths(task.opportunityId, opportunity?.contactId);
 }
 
+export async function updateContactAction(formData: FormData) {
+  const contactId = value(formData, "contactId");
+  const firstName = value(formData, "firstName");
+  const lastName = optionalValue(formData, "lastName");
+  const phone = value(formData, "phone");
+  const email = optionalValue(formData, "email");
+
+  await getCrmRepository().updateContact({
+    contactId,
+    firstName,
+    lastName,
+    phone,
+    email,
+  });
+
+  revalidateCrmPaths(undefined, contactId);
+}
+
 export async function addNoteAction(formData: FormData) {
   const opportunityId = value(formData, "opportunityId");
   const body = value(formData, "body");
@@ -142,6 +160,69 @@ export async function addNoteAction(formData: FormData) {
 
   const opportunity = await getCrmRepository().getOpportunity(opportunityId);
   revalidateCrmPaths(opportunityId, opportunity?.contactId);
+}
+
+function formDataValues(formData: FormData, key: string) {
+  return formData
+    .getAll(key)
+    .filter((entry): entry is string => typeof entry === "string" && entry.trim().length > 0)
+    .map((entry) => entry.trim());
+}
+
+export async function createCrmNoteAction(formData: FormData) {
+  const ownerId = await currentUserId();
+  if (!ownerId) throw new Error("Utilizador sem sessao ativa.");
+
+  const opportunityId = optionalValue(formData, "opportunityId");
+  const contactId = optionalValue(formData, "contactId");
+
+  const note = await getCrmRepository().createCrmNote({
+    ownerId,
+    opportunityId,
+    contactId,
+    title: optionalValue(formData, "title"),
+    body: value(formData, "body"),
+    category: (value(formData, "category") || "warm") as CrmNoteCategory,
+    teamIds: formDataValues(formData, "teamIds"),
+  });
+
+  revalidateCrmPaths(opportunityId ?? undefined, contactId ?? undefined);
+  revalidatePath("/crm/dashboard");
+
+  if (note.opportunityId) revalidatePath(`/crm/oportunidades/${note.opportunityId}`);
+}
+
+export async function updateCrmNoteAction(formData: FormData) {
+  const noteId = value(formData, "noteId");
+  const opportunityId = optionalValue(formData, "opportunityId");
+  const contactId = optionalValue(formData, "contactId");
+  const archive = value(formData, "archive") === "on";
+  const note = await getCrmRepository().updateCrmNote({
+    noteId,
+    title: optionalValue(formData, "title"),
+    body: value(formData, "body"),
+    category: (value(formData, "category") || "warm") as CrmNoteCategory,
+    archivedAt: archive ? new Date().toISOString() : null,
+    teamIds: formDataValues(formData, "teamIds"),
+  });
+
+  revalidateCrmPaths(opportunityId ?? undefined, contactId ?? undefined);
+  revalidatePath("/crm/dashboard");
+
+  if (note.opportunityId) revalidatePath(`/crm/oportunidades/${note.opportunityId}`);
+}
+
+export async function createNoteTeamAction(formData: FormData) {
+  const createdBy = await currentUserId();
+  if (!createdBy) throw new Error("Utilizador sem sessao ativa.");
+
+  await getCrmRepository().createNoteTeam({
+    name: value(formData, "name"),
+    createdBy,
+    memberIds: formDataValues(formData, "memberIds"),
+  });
+
+  revalidatePath("/crm/dashboard");
 }
 
 export async function registerCallAction(formData: FormData) {

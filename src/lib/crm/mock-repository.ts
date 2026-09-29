@@ -13,9 +13,13 @@ import {
   sortByDateAsc,
   type AddActivityInput,
   type CreateTaskInput,
+  type CreateCrmNoteInput,
+  type CreateNoteTeamInput,
   type CrmRepository,
   type OpportunityFilters,
   type TaskFilters,
+  type UpdateContactInput,
+  type UpdateCrmNoteInput,
   type UpdateTaskInput,
 } from "./repository";
 import {
@@ -37,10 +41,13 @@ import {
 import type {
   Activity,
   Contact,
+  CrmNote,
   DashboardMetrics,
   FormSubmission,
   LeadSource,
   LeadTemperature,
+  NoteTeam,
+  NoteTeamMember,
   Opportunity,
   OpportunityWithRelations,
   Profile,
@@ -59,6 +66,9 @@ type MockRepositoryState = {
   activities: Activity[];
   tasks: Task[];
   formSubmissions: FormSubmission[];
+  crmNotes: CrmNote[];
+  noteTeams: NoteTeam[];
+  noteTeamMembers: NoteTeamMember[];
 };
 
 function cloneState(): MockRepositoryState {
@@ -70,6 +80,9 @@ function cloneState(): MockRepositoryState {
     activities: structuredClone(mockActivities),
     tasks: structuredClone(mockTasks),
     formSubmissions: structuredClone(mockFormSubmissions),
+    crmNotes: [],
+    noteTeams: [],
+    noteTeamMembers: [],
   };
 }
 
@@ -610,6 +623,20 @@ export function createMockCrmRepository(
     async getContact(id) {
       return state.contacts.find((contact) => contact.id === id) ?? null;
     },
+    async updateContact(input: UpdateContactInput) {
+      const contact = state.contacts.find((item) => item.id === input.contactId);
+      if (!contact) throw new Error("Contact not found");
+
+      contact.firstName = input.firstName;
+      contact.lastName = input.lastName;
+      contact.phone = input.phone;
+      contact.phoneNormalized = normalizePhone(input.phone);
+      contact.email = input.email;
+      contact.emailNormalized = normalizeEmail(input.email);
+      contact.updatedAt = now().toISOString();
+
+      return contact;
+    },
     async getOpportunities(filters) {
       return filterOpportunities(toRelations(), filters);
     },
@@ -801,6 +828,95 @@ export function createMockCrmRepository(
       }
 
       return activity;
+    },
+    async getCrmNotes(filters = {}) {
+      return state.crmNotes.filter((note) => {
+        const matchesOpportunity = filters.opportunityId
+          ? note.opportunityId === filters.opportunityId
+          : true;
+        const matchesContact = filters.contactId ? note.contactId === filters.contactId : true;
+        const matchesOwner = filters.ownerId ? note.ownerId === filters.ownerId : true;
+        const matchesCategory = filters.category ? note.category === filters.category : true;
+        const matchesArchived = filters.includeArchived ? true : !note.archivedAt;
+        const matchesTeam = filters.teamId
+          ? note.sharedTeams.some((team) => team.id === filters.teamId)
+          : true;
+
+        return (
+          matchesOpportunity &&
+          matchesContact &&
+          matchesOwner &&
+          matchesCategory &&
+          matchesArchived &&
+          matchesTeam
+        );
+      });
+    },
+    async createCrmNote(input: CreateCrmNoteInput) {
+      const timestamp = now().toISOString();
+      const sharedTeams = state.noteTeams.filter((team) => input.teamIds?.includes(team.id));
+      const note: CrmNote = {
+        id: makeId("80000000", state.crmNotes.length + 1),
+        ownerId: input.ownerId,
+        opportunityId: input.opportunityId ?? null,
+        contactId: input.contactId ?? null,
+        title: input.title ?? null,
+        body: input.body,
+        category: input.category,
+        archivedAt: null,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        ownerProfile: state.profiles.find((profile) => profile.id === input.ownerId) ?? null,
+        sharedTeams,
+      };
+
+      state.crmNotes.push(note);
+      return note;
+    },
+    async updateCrmNote(input: UpdateCrmNoteInput) {
+      const note = state.crmNotes.find((item) => item.id === input.noteId);
+      if (!note) throw new Error("Note not found");
+
+      note.title = input.title ?? null;
+      note.body = input.body;
+      note.category = input.category;
+      note.archivedAt = input.archivedAt ?? null;
+      note.updatedAt = now().toISOString();
+
+      if (input.teamIds) {
+        note.sharedTeams = state.noteTeams.filter((team) => input.teamIds?.includes(team.id));
+      }
+
+      return note;
+    },
+    async getNoteTeams() {
+      return state.noteTeams;
+    },
+    async getNoteTeamMembers() {
+      return state.noteTeamMembers;
+    },
+    async createNoteTeam(input: CreateNoteTeamInput) {
+      const timestamp = now().toISOString();
+      const team: NoteTeam = {
+        id: makeId("81000000", state.noteTeams.length + 1),
+        name: input.name,
+        createdBy: input.createdBy,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+      const memberIds = Array.from(new Set([input.createdBy, ...input.memberIds]));
+
+      state.noteTeams.push(team);
+      state.noteTeamMembers.push(
+        ...memberIds.map((userId) => ({
+          teamId: team.id,
+          userId,
+          role: userId === input.createdBy ? ("admin" as const) : ("member" as const),
+          createdAt: timestamp,
+        })),
+      );
+
+      return team;
     },
     async markOpportunityLost(opportunityId, reason, notes = null, userId = currentMockProfileId) {
       const opportunity = getOpportunityRecord(opportunityId);

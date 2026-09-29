@@ -200,6 +200,178 @@ export type Database = {
         }
         Relationships: []
       }
+      note_teams: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "note_teams_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      note_team_members: {
+        Row: {
+          created_at: string
+          role: Database["public"]["Enums"]["note_team_role"]
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          role?: Database["public"]["Enums"]["note_team_role"]
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          role?: Database["public"]["Enums"]["note_team_role"]
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "note_team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "note_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "note_team_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_notes: {
+        Row: {
+          archived_at: string | null
+          body: string
+          category: Database["public"]["Enums"]["crm_note_category"]
+          contact_id: string | null
+          created_at: string
+          id: string
+          opportunity_id: string | null
+          owner_id: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          body: string
+          category?: Database["public"]["Enums"]["crm_note_category"]
+          contact_id?: string | null
+          created_at?: string
+          id?: string
+          opportunity_id?: string | null
+          owner_id: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          body?: string
+          category?: Database["public"]["Enums"]["crm_note_category"]
+          contact_id?: string | null
+          created_at?: string
+          id?: string
+          opportunity_id?: string | null
+          owner_id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_notes_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_notes_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_notes_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_note_team_shares: {
+        Row: {
+          created_at: string
+          note_id: string
+          shared_by: string | null
+          team_id: string
+        }
+        Insert: {
+          created_at?: string
+          note_id: string
+          shared_by?: string | null
+          team_id: string
+        }
+        Update: {
+          created_at?: string
+          note_id?: string
+          shared_by?: string | null
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_note_team_shares_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: false
+            referencedRelation: "crm_notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_note_team_shares_shared_by_fkey"
+            columns: ["shared_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_note_team_shares_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "note_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       opportunities: {
         Row: {
           assigned_to: string | null
@@ -493,7 +665,9 @@ export type Database = {
         | "task_completed"
         | "lost"
       app_role: "admin" | "consultor"
+      crm_note_category: "urgent" | "hot" | "warm" | "cold"
       lead_temperature: "fria" | "morna" | "quente"
+      note_team_role: "admin" | "member"
       opportunity_status: "new" | "open" | "won" | "lost" | "archived"
       opportunity_type: "buyer" | "seller"
       task_priority: "low" | "normal" | "high" | "urgent"
@@ -635,7 +809,9 @@ export const Constants = {
         "lost",
       ],
       app_role: ["admin", "consultor"],
+      crm_note_category: ["urgent", "hot", "warm", "cold"],
       lead_temperature: ["fria", "morna", "quente"],
+      note_team_role: ["admin", "member"],
       opportunity_status: ["new", "open", "won", "lost", "archived"],
       opportunity_type: ["buyer", "seller"],
       task_priority: ["low", "normal", "high", "urgent"],

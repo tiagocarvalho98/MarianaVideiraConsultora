@@ -1,19 +1,74 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { CrmNotesBoard } from "@/components/crm/CrmNotesBoard";
 import { MetricTile } from "@/components/crm/MetricTile";
 import { PageIntro } from "@/components/crm/PageIntro";
 import { dashboardMetricCards } from "@/data/dashboard-metrics";
+import { getSupabaseSessionProfile } from "@/lib/auth/server-auth";
 import { getCrmRepository } from "@/lib/crm";
+import { cn } from "@/lib/utils";
 
-export default async function DashboardPage() {
-  const metrics = await getCrmRepository().getDashboardMetrics();
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const { tab } = await searchParams;
+  const selectedTab = tab === "notas" ? "notas" : "metricas";
+  const repository = getCrmRepository();
+  const [metrics, currentProfile, profiles, notes, teams, teamMembers] = await Promise.all([
+    repository.getDashboardMetrics(),
+    getSupabaseSessionProfile(),
+    repository.getProfiles(),
+    repository.getCrmNotes(),
+    repository.getNoteTeams(),
+    repository.getNoteTeamMembers(),
+  ]);
+
+  if (!currentProfile) {
+    notFound();
+  }
+
   const maxSourceCount = Math.max(...metrics.bySource.map((item) => item.count), 1);
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageIntro
         eyebrow="Metricas"
         title="Dashboard"
         description="Leitura curta de captacao e operacao. Acoes e follow-up continuam a viver primeiro na pagina Hoje."
       />
+
+      <div className="flex w-fit rounded-2xl border border-accent/20 bg-white/[0.035] p-1">
+        {[
+          { id: "metricas", label: "Metricas", href: "/crm/dashboard" },
+          { id: "notas", label: "Notas", href: "/crm/dashboard?tab=notas" },
+        ].map((item) => (
+          <Link
+            key={item.id}
+            href={item.href}
+            className={cn(
+              "rounded-xl px-4 py-2 text-sm font-bold transition",
+              selectedTab === item.id
+                ? "bg-accent text-primary-foreground"
+                : "text-stone-300 hover:text-accent",
+            )}
+          >
+            {item.label}
+          </Link>
+        ))}
+      </div>
+
+      {selectedTab === "notas" ? (
+        <CrmNotesBoard
+          notes={notes}
+          teams={teams}
+          teamMembers={teamMembers}
+          profiles={profiles}
+          currentProfileId={currentProfile.id}
+        />
+      ) : (
+        <>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {dashboardMetricCards.map((card) => (
           <MetricTile
@@ -64,6 +119,8 @@ export default async function DashboardPage() {
           </div>
         </section>
       </div>
+        </>
+      )}
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { OpportunityCard } from "@/components/crm/OpportunityCard";
 import { PageIntro } from "@/components/crm/PageIntro";
 import { ManualOpportunityDialog } from "@/components/crm/ManualOpportunityDialog";
+import { ContactEditForm } from "@/components/crm/ContactEditForm";
 import { getSupabaseSessionProfile } from "@/lib/auth/server-auth";
 import { getCrmRepository } from "@/lib/crm";
 import { formatContactName, formatDateTime } from "@/lib/crm/format";
@@ -74,6 +75,8 @@ export default async function ContactDetailPage({
           </div>
         </div>
       </section>
+
+      <ContactEditForm contact={contact} />
 
       <section className="crm-surface rounded-3xl p-5">
         <div className="relative flex items-center justify-between gap-4">

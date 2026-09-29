@@ -3,6 +3,8 @@ export type OpportunityType = "buyer" | "seller";
 export type OpportunityStatus = "new" | "open" | "won" | "lost" | "archived";
 export type LeadTemperature = "fria" | "morna" | "quente";
 export type TaskPriority = "low" | "normal" | "high" | "urgent";
+export type CrmNoteCategory = "urgent" | "hot" | "warm" | "cold";
+export type NoteTeamRole = "admin" | "member";
 
 export type ActivityType =
   | "form_submission"
@@ -86,6 +88,43 @@ export type Task = {
   priority: TaskPriority;
   createdAt: string;
   updatedAt: string;
+};
+
+export type NoteTeam = {
+  id: string;
+  name: string;
+  createdBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type NoteTeamMember = {
+  teamId: string;
+  userId: string;
+  role: NoteTeamRole;
+  createdAt: string;
+};
+
+export type CrmNoteTeamShare = {
+  noteId: string;
+  teamId: string;
+  sharedBy: string | null;
+  createdAt: string;
+};
+
+export type CrmNote = {
+  id: string;
+  ownerId: string;
+  opportunityId: string | null;
+  contactId: string | null;
+  title: string | null;
+  body: string;
+  category: CrmNoteCategory;
+  archivedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  ownerProfile: Profile | null;
+  sharedTeams: NoteTeam[];
 };
 
 export type PipelineStage = {

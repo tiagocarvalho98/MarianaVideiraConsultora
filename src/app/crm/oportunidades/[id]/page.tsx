@@ -6,6 +6,8 @@ import { LostOpportunityDialog } from "@/components/crm/LostOpportunityDialog";
 import { NextActionPanel } from "@/components/crm/NextActionPanel";
 import { OpportunityControls } from "@/components/crm/OpportunityControls";
 import { PageIntro } from "@/components/crm/PageIntro";
+import { CrmNotesBoard } from "@/components/crm/CrmNotesBoard";
+import { getSupabaseSessionProfile } from "@/lib/auth/server-auth";
 import { getCrmRepository } from "@/lib/crm";
 import {
   formatContactName,
@@ -24,14 +26,20 @@ export default async function OpportunityDetailPage({
   const { id } = await params;
   const { created } = await searchParams;
   const repository = getCrmRepository();
-  const [opportunity, profiles] = await Promise.all([
+  const [opportunity, profiles, currentProfile] = await Promise.all([
     repository.getOpportunity(id),
     repository.getProfiles(),
+    getSupabaseSessionProfile(),
   ]);
 
-  if (!opportunity) {
+  if (!opportunity || !currentProfile) {
     notFound();
   }
+  const [notes, teams, teamMembers] = await Promise.all([
+    repository.getCrmNotes({ opportunityId: opportunity.id }),
+    repository.getNoteTeams(),
+    repository.getNoteTeamMembers(),
+  ]);
 
   const name = formatContactName(
     opportunity.contact.firstName,
@@ -140,6 +148,16 @@ export default async function OpportunityDetailPage({
       </section>
 
       <ActivityForms opportunity={opportunity} />
+      <CrmNotesBoard
+        notes={notes}
+        teams={teams}
+        teamMembers={teamMembers}
+        profiles={profiles}
+        currentProfileId={currentProfile.id}
+        opportunityId={opportunity.id}
+        contactId={opportunity.contactId}
+        compact
+      />
       <ActivityTimeline activities={opportunity.activities} profiles={profiles} />
     </div>
   );

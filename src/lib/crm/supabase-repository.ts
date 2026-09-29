@@ -3,10 +3,13 @@ import type { Json, Tables } from "@/types/database";
 import type {
   Activity,
   Contact,
+  CrmNote,
   DashboardMetrics,
   FormSubmission,
   LeadSource,
   LeadTemperature,
+  NoteTeam,
+  NoteTeamMember,
   Opportunity,
   OpportunityWithRelations,
   Profile,
@@ -16,6 +19,8 @@ import type {
 import {
   mapBuyerLeadFormToIntake,
   mapSellerLeadFormToIntake,
+  normalizeEmail,
+  normalizePhone,
   type BuyerLeadInput,
   type LeadIntakeResult,
   type MappedLeadIntake,
@@ -32,8 +37,12 @@ import {
   type CreateTaskInput,
   type CrmDataset,
   type CrmRepository,
+  type CreateCrmNoteInput,
+  type CreateNoteTeamInput,
   type OpportunityFilters,
   type TaskFilters,
+  type UpdateContactInput,
+  type UpdateCrmNoteInput,
   type UpdateTaskInput,
 } from "./repository";
 
@@ -44,6 +53,10 @@ type OpportunityRow = Tables<"opportunities">;
 type ActivityRow = Tables<"activities">;
 type TaskRow = Tables<"tasks">;
 type FormSubmissionRow = Tables<"form_submissions">;
+type NoteTeamRow = Tables<"note_teams">;
+type NoteTeamMemberRow = Tables<"note_team_members">;
+type CrmNoteRow = Tables<"crm_notes">;
+type CrmNoteTeamShareRow = Tables<"crm_note_team_shares">;
 
 const staleThresholdDays = 7;
 
@@ -219,6 +232,51 @@ function toFormSubmission(row: FormSubmissionRow): FormSubmission {
     marketingConsent: row.marketing_consent,
     rawPayload: jsonToRecord(row.raw_payload),
     createdAt: row.created_at,
+  };
+}
+
+function toNoteTeam(row: NoteTeamRow): NoteTeam {
+  return {
+    id: row.id,
+    name: row.name,
+    createdBy: row.created_by,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function toNoteTeamMember(row: NoteTeamMemberRow): NoteTeamMember {
+  return {
+    teamId: row.team_id,
+    userId: row.user_id,
+    role: row.role,
+    createdAt: row.created_at,
+  };
+}
+
+function toCrmNote(
+  row: CrmNoteRow,
+  profiles: Profile[],
+  teams: NoteTeam[],
+  shares: CrmNoteTeamShareRow[],
+): CrmNote {
+  const sharedTeamIds = new Set(
+    shares.filter((share) => share.note_id === row.id).map((share) => share.team_id),
+  );
+
+  return {
+    id: row.id,
+    ownerId: row.owner_id,
+    opportunityId: row.opportunity_id,
+    contactId: row.contact_id,
+    title: row.title,
+    body: row.body,
+    category: row.category,
+    archivedAt: row.archived_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    ownerProfile: profiles.find((profile) => profile.id === row.owner_id) ?? null,
+    sharedTeams: teams.filter((team) => sharedTeamIds.has(team.id)),
   };
 }
 
@@ -608,6 +666,28 @@ export function createSupabaseRepository(): CrmRepository {
     async getContact(id) {
       return (await allRelations()).contacts.find((contact) => contact.id === id) ?? null;
     },
+    async updateContact(input: UpdateContactInput) {
+      const supabase = await createSupabaseServerClient();
+      const phoneNormalized = normalizePhone(input.phone);
+      const emailNormalized = normalizeEmail(input.email);
+      const { data, error } = await supabase
+        .from("contacts")
+        .update({
+          first_name: input.firstName,
+          last_name: input.lastName,
+          phone: input.phone,
+          phone_normalized: phoneNormalized,
+          email: input.email,
+          email_normalized: emailNormalized,
+        })
+        .eq("id", input.contactId)
+        .select("*")
+        .single();
+
+      if (error) throw error;
+
+      return toContact(data);
+    },
     async getOpportunities(filters) {
       return filterOpportunities((await allRelations()).opportunities, filters);
     },
@@ -782,6 +862,153 @@ export function createSupabaseRepository(): CrmRepository {
       if (error) throw error;
 
       return toActivity(data);
+    },
+    async getCrmNotes(filters = {}) {
+      const supabase = await createSupabaseServerClient();
+      let query = supabase.from("crm_notes").select("*").order("updated_at", { ascending: false });
+
+      if (filters.opportunityId) query = query.eq("opportunity_id", filters.opportunityId);
+      if (filters.contactId) query = query.eq("contact_id", filters.contactId);
+      if (filters.ownerId) query = query.eq("owner_id", filters.ownerId);
+      if (filters.category) query = query.eq("category", filters.category);
+      if (!filters.includeArchived) query = query.is("archived_at", null);
+
+      const [notesResult, profiles, teams, sharesResult] = await Promise.all([
+        query,
+        this.getProfiles(),
+        this.getNoteTeams(),
+        supabase.from("crm_note_team_shares").select("*"),
+      ]);
+
+      if (notesResult.error) throw notesResult.error;
+      if (sharesResult.error) throw sharesResult.error;
+
+      let notes = notesResult.data ?? [];
+
+      if (filters.teamId) {
+        const noteIds = new Set(
+          (sharesResult.data ?? [])
+            .filter((share) => share.team_id === filters.teamId)
+            .map((share) => share.note_id),
+        );
+        notes = notes.filter((note) => noteIds.has(note.id));
+      }
+
+      return notes.map((note) => toCrmNote(note, profiles, teams, sharesResult.data ?? []));
+    },
+    async createCrmNote(input: CreateCrmNoteInput) {
+      const supabase = await createSupabaseServerClient();
+      const { data, error } = await supabase
+        .from("crm_notes")
+        .insert({
+          owner_id: input.ownerId,
+          opportunity_id: input.opportunityId ?? null,
+          contact_id: input.contactId ?? null,
+          title: input.title ?? null,
+          body: input.body,
+          category: input.category,
+        })
+        .select("*")
+        .single();
+
+      if (error) throw error;
+
+      if (input.teamIds?.length) {
+        const { error: shareError } = await supabase.from("crm_note_team_shares").insert(
+          input.teamIds.map((teamId) => ({
+            note_id: data.id,
+            team_id: teamId,
+            shared_by: input.ownerId,
+          })),
+        );
+
+        if (shareError) throw shareError;
+      }
+
+      const notes = await this.getCrmNotes({ includeArchived: true });
+      return notes.find((note) => note.id === data.id) ?? toCrmNote(data, [], [], []);
+    },
+    async updateCrmNote(input: UpdateCrmNoteInput) {
+      const supabase = await createSupabaseServerClient();
+      const { data, error } = await supabase
+        .from("crm_notes")
+        .update({
+          title: input.title ?? null,
+          body: input.body,
+          category: input.category,
+          archived_at: input.archivedAt ?? null,
+        })
+        .eq("id", input.noteId)
+        .select("*")
+        .single();
+
+      if (error) throw error;
+
+      if (input.teamIds) {
+        const { error: deleteError } = await supabase
+          .from("crm_note_team_shares")
+          .delete()
+          .eq("note_id", input.noteId);
+
+        if (deleteError) throw deleteError;
+
+        if (input.teamIds.length) {
+          const { error: shareError } = await supabase.from("crm_note_team_shares").insert(
+            input.teamIds.map((teamId) => ({
+              note_id: input.noteId,
+              team_id: teamId,
+              shared_by: data.owner_id,
+            })),
+          );
+
+          if (shareError) throw shareError;
+        }
+      }
+
+      const notes = await this.getCrmNotes({ includeArchived: true });
+      return notes.find((note) => note.id === data.id) ?? toCrmNote(data, [], [], []);
+    },
+    async getNoteTeams() {
+      const supabase = await createSupabaseServerClient();
+      const { data, error } = await supabase
+        .from("note_teams")
+        .select("*")
+        .order("name", { ascending: true });
+
+      if (error) throw error;
+
+      return (data ?? []).map(toNoteTeam);
+    },
+    async getNoteTeamMembers() {
+      const supabase = await createSupabaseServerClient();
+      const { data, error } = await supabase.from("note_team_members").select("*");
+
+      if (error) throw error;
+
+      return (data ?? []).map(toNoteTeamMember);
+    },
+    async createNoteTeam(input: CreateNoteTeamInput) {
+      const supabase = await createSupabaseServerClient();
+      const { data, error } = await supabase
+        .from("note_teams")
+        .insert({ name: input.name, created_by: input.createdBy })
+        .select("*")
+        .single();
+
+      if (error) throw error;
+
+      const memberIds = Array.from(new Set([input.createdBy, ...input.memberIds]));
+      const { error: memberError } = await supabase.from("note_team_members").insert(
+        memberIds.map((userId) => ({
+          team_id: data.id,
+          user_id: userId,
+          role: userId === input.createdBy ? "admin" : "member",
+        })),
+      );
+
+      if (memberError) throw memberError;
+
+      return toNoteTeam(data);
     },
     async markOpportunityLost(opportunityId, reason, notes = null) {
       const supabase = await createSupabaseServerClient();

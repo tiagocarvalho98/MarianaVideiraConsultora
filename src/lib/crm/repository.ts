@@ -8,6 +8,8 @@ import type { ManualOpportunityInput, ManualOpportunityResult } from "./manual-o
 import type {
   Activity,
   Contact,
+  CrmNote,
+  CrmNoteCategory,
   DashboardMetrics,
   FormSubmission,
   LeadSource,
@@ -17,6 +19,8 @@ import type {
   Profile,
   Task,
   TaskPriority,
+  NoteTeam,
+  NoteTeamMember,
   TodayQueueGroup,
   TodayPriorityGroup,
 } from "@/types/crm";
@@ -54,6 +58,14 @@ export type CreateTaskInput = {
   priority?: TaskPriority;
 };
 
+export type UpdateContactInput = {
+  contactId: string;
+  firstName: string;
+  lastName: string | null;
+  phone: string;
+  email: string | null;
+};
+
 export type UpdateTaskInput = {
   taskId: string;
   assignedTo: string | null;
@@ -72,6 +84,40 @@ export type AddActivityInput = {
   occurredAt?: string;
 };
 
+export type CrmNoteFilters = {
+  opportunityId?: string;
+  contactId?: string;
+  ownerId?: string;
+  teamId?: string;
+  category?: CrmNoteCategory;
+  includeArchived?: boolean;
+};
+
+export type CreateCrmNoteInput = {
+  ownerId: string;
+  opportunityId?: string | null;
+  contactId?: string | null;
+  title?: string | null;
+  body: string;
+  category: CrmNoteCategory;
+  teamIds?: string[];
+};
+
+export type UpdateCrmNoteInput = {
+  noteId: string;
+  title?: string | null;
+  body: string;
+  category: CrmNoteCategory;
+  archivedAt?: string | null;
+  teamIds?: string[];
+};
+
+export type CreateNoteTeamInput = {
+  name: string;
+  createdBy: string;
+  memberIds: string[];
+};
+
 export type CrmRepository = {
   getCurrentUser(): Promise<Profile | null>;
   getCurrentProfile(): Promise<Profile | null>;
@@ -80,6 +126,7 @@ export type CrmRepository = {
   getContacts(): Promise<Contact[]>;
   listContacts(): Promise<Contact[]>;
   getContact(id: string): Promise<Contact | null>;
+  updateContact(input: UpdateContactInput): Promise<Contact>;
   getOpportunities(filters?: OpportunityFilters): Promise<OpportunityWithRelations[]>;
   listOpportunities(filters?: OpportunityFilters): Promise<OpportunityWithRelations[]>;
   getOpportunity(id: string): Promise<OpportunityWithRelations | null>;
@@ -109,6 +156,12 @@ export type CrmRepository = {
   updateTask(input: UpdateTaskInput): Promise<Task>;
   completeTask(taskId: string, userId?: string | null): Promise<Task>;
   addActivity(input: AddActivityInput): Promise<Activity>;
+  getCrmNotes(filters?: CrmNoteFilters): Promise<CrmNote[]>;
+  createCrmNote(input: CreateCrmNoteInput): Promise<CrmNote>;
+  updateCrmNote(input: UpdateCrmNoteInput): Promise<CrmNote>;
+  getNoteTeams(): Promise<NoteTeam[]>;
+  getNoteTeamMembers(): Promise<NoteTeamMember[]>;
+  createNoteTeam(input: CreateNoteTeamInput): Promise<NoteTeam>;
   markOpportunityLost(
     opportunityId: string,
     reason: string,
