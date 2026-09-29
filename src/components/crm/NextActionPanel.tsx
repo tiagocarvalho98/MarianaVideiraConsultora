@@ -1,8 +1,9 @@
 import { AlertTriangle, CheckCircle2, Clock } from "lucide-react";
-import { completeTaskAction, createTaskAction } from "@/app/crm/actions";
+import { completeTaskAction, createTaskAction, updateTaskAction } from "@/app/crm/actions";
 import { taskPriorities } from "@/data/task-priorities";
 import { formatDateTime, formatRelativeTime } from "@/lib/crm/format";
 import { cn } from "@/lib/utils";
+import { TaskCouldNotCompleteDialog } from "./TaskCouldNotCompleteDialog";
 import type { OpportunityWithRelations, Profile } from "@/types/crm";
 
 function toLocalDateTimeValue(value: string | null) {
@@ -75,18 +76,28 @@ export function NextActionPanel({
               </dd>
             </div>
           </dl>
-          <form action={completeTaskAction} className="mt-4">
-            <input type="hidden" name="taskId" value={nextTask.id} />
-            <button className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-accent px-4 text-sm font-bold text-primary-foreground transition hover:bg-primary">
-              <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-              Marcar concluida
-            </button>
-          </form>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <form action={completeTaskAction}>
+              <input type="hidden" name="taskId" value={nextTask.id} />
+              <button className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-accent px-4 text-sm font-bold text-primary-foreground transition hover:bg-primary">
+                <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+                Marcar concluida
+              </button>
+            </form>
+            <TaskCouldNotCompleteDialog task={nextTask} opportunityId={opportunity.id} />
+          </div>
         </div>
       ) : null}
 
-      <form action={createTaskAction} className="relative mt-5 grid gap-3 md:grid-cols-[1.2fr_0.8fr_0.8fr_0.7fr_auto]">
-        <input type="hidden" name="opportunityId" value={opportunity.id} />
+      <form
+        action={nextTask ? updateTaskAction : createTaskAction}
+        className="relative mt-5 grid gap-3 md:grid-cols-[1.2fr_0.8fr_0.8fr_0.7fr_auto]"
+      >
+        {nextTask ? (
+          <input type="hidden" name="taskId" value={nextTask.id} />
+        ) : (
+          <input type="hidden" name="opportunityId" value={opportunity.id} />
+        )}
         <label className="grid gap-1 text-sm font-semibold text-stone-300">
           Titulo
           <input
@@ -137,7 +148,7 @@ export function NextActionPanel({
         </label>
         <button className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-accent/25 bg-white/5 px-4 text-sm font-bold text-stone-100 transition hover:border-accent hover:text-accent md:mt-auto">
           <Clock className="h-4 w-4" aria-hidden="true" />
-          Guardar
+          {nextTask ? "Reagendar" : "Guardar"}
         </button>
       </form>
     </section>

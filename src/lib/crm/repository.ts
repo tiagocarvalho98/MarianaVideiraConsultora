@@ -72,6 +72,7 @@ export type UpdateTaskInput = {
   title: string;
   dueAt: string;
   priority?: TaskPriority;
+  userId?: string | null;
 };
 
 export type AddActivityInput = {

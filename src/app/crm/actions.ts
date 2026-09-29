@@ -114,10 +114,49 @@ export async function updateTaskAction(formData: FormData) {
     title,
     dueAt: dueAtIso,
     priority,
+    userId: await currentUserId(),
   });
   const opportunity = await getCrmRepository().getOpportunity(task.opportunityId);
 
   revalidateCrmPaths(task.opportunityId, opportunity?.contactId);
+}
+
+export async function couldNotCompleteTaskAction(formData: FormData) {
+  const taskId = value(formData, "taskId");
+  const opportunityId = value(formData, "opportunityId");
+  const reason = value(formData, "reason");
+  const nextDueAt = optionalValue(formData, "nextDueAt");
+  const title = value(formData, "title");
+  const assignedTo = optionalValue(formData, "assignedTo");
+  const priority = (optionalValue(formData, "priority") ?? "normal") as TaskPriority;
+  const userId = await currentUserId();
+
+  if (nextDueAt) {
+    await getCrmRepository().updateTask({
+      taskId,
+      assignedTo,
+      title,
+      dueAt: new Date(nextDueAt).toISOString(),
+      priority,
+      userId,
+    });
+  }
+
+  await getCrmRepository().addActivity({
+    opportunityId,
+    userId,
+    type: "note",
+    title: "Acao nao concluida",
+    body: reason,
+    metadata: {
+      task_id: taskId,
+      reason,
+      rescheduled_to: nextDueAt ? new Date(nextDueAt).toISOString() : null,
+    },
+  });
+
+  const opportunity = await getCrmRepository().getOpportunity(opportunityId);
+  revalidateCrmPaths(opportunityId, opportunity?.contactId);
 }
 
 export async function completeTaskAction(formData: FormData) {

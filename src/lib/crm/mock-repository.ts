@@ -783,6 +783,16 @@ export function createMockCrmRepository(
       task.updatedAt = timestamp;
       recalculateNextActionAt(task.opportunityId);
 
+      await repository.addActivity({
+        opportunityId: task.opportunityId,
+        userId: input.userId ?? currentMockProfileId,
+        type: "note",
+        title: "Tarefa atualizada",
+        body: `${task.title} · nova data: ${task.dueAt}`,
+        metadata: { task_id: task.id, due_at: task.dueAt, priority: task.priority },
+        occurredAt: timestamp,
+      });
+
       return task;
     },
     async completeTask(taskId, userId = currentMockProfileId) {

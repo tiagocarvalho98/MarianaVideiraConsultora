@@ -73,10 +73,16 @@ export function CrmNotesBoard({
             const categoryNotes = notes.filter((note) => note.category === category.id);
 
             return (
-              <div key={category.id} className="rounded-2xl border border-white/10 bg-white/[0.035] p-3">
+              <div
+                key={category.id}
+                className={cn("rounded-2xl border p-3", category.columnClassName)}
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="text-sm font-bold text-stone-100">{category.label}</h3>
+                    <h3 className="flex items-center gap-2 text-sm font-bold text-stone-100">
+                      <span className={cn("h-2.5 w-2.5 rounded-full", category.dotClassName)} />
+                      {category.label}
+                    </h3>
                     <p className="text-xs text-stone-500">{category.description}</p>
                   </div>
                   <span className="rounded-full border border-white/10 px-2 py-0.5 text-xs font-bold text-stone-300">

@@ -1,6 +1,7 @@
 import { Filter } from "lucide-react";
 import { PageIntro } from "@/components/crm/PageIntro";
 import { PipelineOpportunityDialog } from "@/components/crm/PipelineOpportunityDialog";
+import { pipelineStageAccent } from "@/data/crm-visual-system";
 import { buyerPipelineStages, sellerPipelineStages } from "@/data/pipeline-stages";
 import { leadTemperatures } from "@/data/temperatures";
 import { getCrmRepository } from "@/lib/crm";
@@ -46,12 +47,14 @@ function PipelineBoard({
           const stageOpportunities = opportunities.filter(
             (opportunity) => opportunity.stage === stage.id,
           );
+          const accent = pipelineStageAccent(stage.id);
 
           return (
-            <div key={stage.id} className="rounded-2xl border border-white/10 bg-white/[0.035] p-2.5">
+            <div key={stage.id} className={`rounded-2xl border p-2.5 ${accent.panel}`}>
+              <div className={`h-1 rounded-full ${accent.bar}`} />
               <div className="flex items-center justify-between gap-3 px-1 py-2">
-                <h3 className="text-sm font-bold text-stone-200">{stage.label}</h3>
-                <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-bold text-stone-300">
+                <h3 className={`text-sm font-bold ${accent.text}`}>{stage.label}</h3>
+                <span className="rounded-full border border-white/10 bg-[#061a2b]/55 px-2.5 py-1 text-xs font-bold text-stone-200">
                   {stageOpportunities.length}
                 </span>
               </div>

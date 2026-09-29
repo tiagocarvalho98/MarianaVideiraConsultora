@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CrmNotesBoard } from "@/components/crm/CrmNotesBoard";
 import { MetricTile } from "@/components/crm/MetricTile";
 import { PageIntro } from "@/components/crm/PageIntro";
+import { crmSectionAccents } from "@/data/crm-visual-system";
 import { dashboardMetricCards } from "@/data/dashboard-metrics";
 import { getSupabaseSessionProfile } from "@/lib/auth/server-auth";
 import { getCrmRepository } from "@/lib/crm";
@@ -76,12 +77,14 @@ export default async function DashboardPage({
             label={card.label}
             value={metrics[card.key]}
             hint={card.hint}
+            accent={card.accent}
           />
         ))}
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-        <section className="crm-surface rounded-3xl p-5">
+        <section className={cn("crm-surface rounded-3xl p-5", crmSectionAccents.acquisition.panel)}>
+          <div className={cn("relative mb-4 h-1 w-16 rounded-full", crmSectionAccents.acquisition.bar)} />
           <h2 className="relative text-lg font-bold text-stone-50">Origem das leads</h2>
           <div className="mt-5 space-y-4">
             {metrics.bySource.map((item) => (
@@ -101,7 +104,8 @@ export default async function DashboardPage({
           </div>
         </section>
 
-        <section className="crm-surface crm-geometric-detail rounded-3xl p-5">
+        <section className={cn("crm-surface crm-geometric-detail rounded-3xl p-5", crmSectionAccents.attention.panel)}>
+          <div className={cn("relative mb-4 h-1 w-16 rounded-full", crmSectionAccents.attention.bar)} />
           <h2 className="relative text-lg font-bold text-stone-50">Leitura operacional</h2>
           <div className="relative mt-4 space-y-3 text-sm leading-6 text-stone-300">
             <p>

@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import { createSupabaseServerClient, createSupabaseServiceClient } from "@/lib/supabase/server";
 import type { Json, Tables } from "@/types/database";
 import type {
@@ -803,6 +805,7 @@ export function createSupabaseRepository(): CrmRepository {
     },
     async updateTask(input: UpdateTaskInput) {
       const supabase = await createSupabaseServerClient();
+      const timestamp = new Date().toISOString();
       const { data, error } = await supabase
         .from("tasks")
         .update({
@@ -816,6 +819,16 @@ export function createSupabaseRepository(): CrmRepository {
         .single();
 
       if (error) throw error;
+
+      await this.addActivity({
+        opportunityId: data.opportunity_id,
+        userId: input.userId ?? null,
+        type: "note",
+        title: "Tarefa atualizada",
+        body: `${data.title} · nova data: ${data.due_at}`,
+        metadata: { task_id: data.id, due_at: data.due_at, priority: data.priority },
+        occurredAt: timestamp,
+      });
 
       return toTask(data);
     },
@@ -989,18 +1002,25 @@ export function createSupabaseRepository(): CrmRepository {
     },
     async createNoteTeam(input: CreateNoteTeamInput) {
       const supabase = await createSupabaseServerClient();
-      const { data, error } = await supabase
+      const teamId = randomUUID();
+      const team: NoteTeamRow = {
+        id: teamId,
+        name: input.name,
+        created_by: input.createdBy,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const { error } = await supabase
         .from("note_teams")
-        .insert({ name: input.name, created_by: input.createdBy })
-        .select("*")
-        .single();
+        .insert({ id: teamId, name: input.name, created_by: input.createdBy });
 
       if (error) throw error;
 
       const memberIds = Array.from(new Set([input.createdBy, ...input.memberIds]));
       const { error: memberError } = await supabase.from("note_team_members").insert(
         memberIds.map((userId) => ({
-          team_id: data.id,
+          team_id: teamId,
           user_id: userId,
           role: userId === input.createdBy ? "admin" : "member",
         })),
@@ -1008,7 +1028,7 @@ export function createSupabaseRepository(): CrmRepository {
 
       if (memberError) throw memberError;
 
-      return toNoteTeam(data);
+      return toNoteTeam(team);
     },
     async markOpportunityLost(opportunityId, reason, notes = null) {
       const supabase = await createSupabaseServerClient();
